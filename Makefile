@@ -1,11 +1,12 @@
 CFLAGS=-std=c11 -g -static
 
-9cc: 9cc.c
+9cc: main.go
 
 test: 9cc
-        ./test.sh
+	go build main.go
+	./test.sh
 
 clean:
-        rm -f 9cc *.o *~ tmp*
+	rm -f 9cc *.o *~ tmp* main
 
 .PHONY: test clean

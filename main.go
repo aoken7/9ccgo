@@ -1,19 +1,60 @@
 package main
 
 import (
+	"9ccgo/lexer"
+	"bytes"
 	"fmt"
 	"os"
 	"strconv"
 )
 
 func compile(s string) string {
-	num, _ := strconv.Atoi(s)
-	t := fmt.Sprintf(".intel_syntax noprefix\n")
-	t += fmt.Sprintf(".global main\n")
-	t += fmt.Sprintf("main:\n")
-	t += fmt.Sprintf("\tmov rax, %d\n", num)
-	t += fmt.Sprintf("\tret\n")
-	return t
+
+	var out bytes.Buffer
+
+	out.WriteString(".intel_syntax noprefix\n")
+	out.WriteString(".global main\n")
+	out.WriteString("main:\n")
+
+	lexer := lexer.New(s)
+
+	num, err := strconv.Atoi(lexer.NextToken())
+	if err != nil {
+		fmt.Println("Not a number.")
+		return ""
+	}
+
+	out.WriteString(fmt.Sprintf("\tmov rax, %d\n", num))
+
+	for {
+		token := lexer.NextToken()
+		if token == "EOF" {
+			break
+		}
+
+		switch token {
+		case "+":
+			operand, err := strconv.Atoi(lexer.NextToken())
+			if err != nil {
+				fmt.Println("Not a number.")
+				return ""
+			}
+
+			out.WriteString(fmt.Sprintf("\tadd rax, %d\n", operand))
+		case "-":
+			operand, err := strconv.Atoi(lexer.NextToken())
+			if err != nil {
+				fmt.Println("Not a number.")
+				return ""
+			}
+
+			out.WriteString(fmt.Sprintf("\tsub rax, %d\n", operand))
+		}
+	}
+
+	out.WriteString("\tret\n")
+
+	return out.String()
 }
 
 func main() {
