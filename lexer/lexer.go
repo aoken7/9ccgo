@@ -44,11 +44,20 @@ func (l *Lexer) readNumber() string {
 	return l.input[position:l.readPosition]
 }
 
+func (l *Lexer) eatSpace() {
+	for l.ch == ' ' || l.ch == '\n' || l.ch == '\t' {
+		l.readChar()
+	}
+}
+
 func newToken(t token.TokenType, s string) token.Token {
 	return token.Token{Type: t, Literal: s}
 }
 
 func (l *Lexer) nextToken() token.Token {
+
+	l.eatSpace()
+
 	if l.readPosition > len(l.input) {
 		return newToken(token.EOF, "")
 	}
@@ -60,6 +69,8 @@ func (l *Lexer) nextToken() token.Token {
 		tok = newToken(token.PLUS, "+")
 	case '-':
 		tok = newToken(token.MINUS, "-")
+	case ';':
+		tok = newToken(token.SEMICOLON, ";")
 	default:
 		num := l.readNumber()
 		tok = newToken(token.INT, num)

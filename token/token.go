@@ -14,4 +14,6 @@ const (
 
 	PLUS  = "PLUS"
 	MINUS = "MINUS"
+
+	SEMICOLON = ";"
 )

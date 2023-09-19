@@ -6,15 +6,24 @@ import (
 )
 
 func TestNextToken(t *testing.T) {
-	input := `12+24`
+	input := `1+2;
+	12 + 34 - 5;
+	`
 
 	tests := []struct {
 		expectType    token.TokenType
 		expectLiteral string
 	}{
+		{token.INT, "1"},
+		{token.PLUS, "+"},
+		{token.INT, "2"},
+		{token.SEMICOLON, ";"},
 		{token.INT, "12"},
 		{token.PLUS, "+"},
-		{token.INT, "24"},
+		{token.INT, "34"},
+		{token.MINUS, "-"},
+		{token.INT, "5"},
+		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
 	}
 
