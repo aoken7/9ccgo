@@ -1,5 +1,7 @@
 package lexer
 
+import "9ccgo/token"
+
 type Lexer struct {
 	input        string
 	position     int //今見てるトークンの位置
@@ -7,7 +9,7 @@ type Lexer struct {
 	ch           byte
 }
 
-func New(input string) *Lexer {
+func newLexer(input string) *Lexer {
 	l := &Lexer{input: input}
 	l.readChar()
 	return l
@@ -42,22 +44,60 @@ func (l *Lexer) readNumber() string {
 	return l.input[position:l.readPosition]
 }
 
-func (l *Lexer) NextToken() string {
+func newToken(t token.TokenType, s string) token.Token {
+	return token.Token{Type: t, Literal: s}
+}
+
+func (l *Lexer) nextToken() token.Token {
 	if l.readPosition > len(l.input) {
-		return "EOF"
+		return newToken(token.EOF, "")
 	}
 
-	tok := ""
+	var tok token.Token
 
 	switch l.ch {
 	case '+':
-		tok = "+"
+		tok = newToken(token.PLUS, "+")
 	case '-':
-		tok = "-"
+		tok = newToken(token.MINUS, "-")
 	default:
-		tok = l.readNumber()
+		num := l.readNumber()
+		tok = newToken(token.INT, num)
 	}
 
 	l.readChar()
 	return tok
+}
+
+type TokenSequence struct {
+	tokens      []token.Token
+	position    int
+	readPositon int
+}
+
+func (ts *TokenSequence) NextToken() token.Token {
+	if ts.tokens[ts.readPositon].Type == token.EOF {
+		return ts.tokens[ts.readPositon]
+	}
+
+	ret := ts.tokens[ts.readPositon]
+	ts.position = ts.readPositon
+	ts.readPositon++
+
+	return ret
+}
+
+func Tokenize(input string) TokenSequence {
+	tokenes := make([]token.Token, 0)
+
+	lexer := newLexer(input)
+	for {
+		tok := lexer.nextToken()
+		tokenes = append(tokenes, tok)
+		if tok.Type == token.EOF {
+			break
+		}
+	}
+
+	return TokenSequence{tokens: tokenes}
 }

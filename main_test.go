@@ -3,5 +3,5 @@ package main
 import "testing"
 
 func TestCompile(t *testing.T) {
-	compile("1")
+	compile("5+20-4")
 }

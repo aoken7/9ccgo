@@ -1,23 +1,31 @@
 package lexer
 
-import "testing"
+import (
+	"9ccgo/token"
+	"testing"
+)
 
 func TestNextToken(t *testing.T) {
 	input := `12+24`
 
-	tests := []string{
-		"12",
-		"+",
-		"24",
-		"EOF",
-		"EOF",
+	tests := []struct {
+		expectType    token.TokenType
+		expectLiteral string
+	}{
+		{token.INT, "12"},
+		{token.PLUS, "+"},
+		{token.INT, "24"},
+		{token.EOF, ""},
 	}
 
-	lexer := New(input)
+	tokens := Tokenize(input)
 	for _, tt := range tests {
-		token := lexer.NextToken()
-		if token != tt {
-			t.Errorf("got %s, want %s", token, tt)
+		tok := tokens.NextToken()
+		if tok.Type != tt.expectType {
+			t.Fatalf("got %s, wawnt %s", tok.Type, tt.expectType)
+		}
+		if tok.Literal != tt.expectLiteral {
+			t.Fatalf("got %s, want %s", tok.Literal, tt.expectLiteral)
 		}
 	}
 }
@@ -29,8 +37,9 @@ func TestReadNumber(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		l := New(tt)
-		num := l.readNumber()
+		tokens := Tokenize(tt)
+		tok := tokens.NextToken()
+		num := tok.Literal
 		if num != tt {
 			t.Fatalf("got %s, want %s", num, tt)
 		}
