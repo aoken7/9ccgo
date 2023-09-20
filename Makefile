@@ -7,6 +7,11 @@ test: 9cc
 	./test.sh
 	rm -f 9cc *.o *~ tmp* main
 
+debug: 9cc
+	go build main.go
+	bash -x test.sh
+	rm -f 9cc *.o *~ tmp* main
+
 clean:
 	rm -f 9cc *.o *~ tmp* main
 
