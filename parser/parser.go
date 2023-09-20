@@ -53,9 +53,19 @@ func (p *Parser) primary() ast.Node {
 }
 
 func (p *Parser) multiple() ast.Node {
-	leftNode := p.primary()
+	node := p.primary()
 
-	return leftNode
+	for {
+		if p.consume(token.ASTERISK) {
+			node = newInfixNode(node, p.primary(), "*")
+		} else if p.consume(token.SLASH) {
+			node = newInfixNode(node, p.primary(), "/")
+		} else {
+			return node
+		}
+	}
+
+	return node
 }
 
 func (p *Parser) expr() ast.Node {

@@ -12,8 +12,10 @@ const (
 
 	INT = "INT"
 
-	PLUS  = "PLUS"
-	MINUS = "MINUS"
+	PLUS     = "+"
+	MINUS    = "-"
+	ASTERISK = "*"
+	SLASH    = "/"
 
 	SEMICOLON = ";"
 )
