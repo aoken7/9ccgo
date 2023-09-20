@@ -28,8 +28,8 @@ func TestNextToken(t *testing.T) {
 	}
 
 	tokens := Tokenize(input)
-	for _, tt := range tests {
-		tok := tokens.NextToken()
+	for i, tt := range tests {
+		tok := tokens[i]
 		if tok.Type != tt.expectType {
 			t.Fatalf("got %s, wawnt %s", tok.Type, tt.expectType)
 		}
@@ -47,7 +47,7 @@ func TestReadNumber(t *testing.T) {
 
 	for _, tt := range tests {
 		tokens := Tokenize(tt)
-		tok := tokens.NextToken()
+		tok := tokens[0]
 		num := tok.Literal
 		if num != tt {
 			t.Fatalf("got %s, want %s", num, tt)

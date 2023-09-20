@@ -80,25 +80,7 @@ func (l *Lexer) nextToken() token.Token {
 	return tok
 }
 
-type TokenSequence struct {
-	tokens      []token.Token
-	position    int
-	readPositon int
-}
-
-func (ts *TokenSequence) NextToken() token.Token {
-	if ts.tokens[ts.readPositon].Type == token.EOF {
-		return ts.tokens[ts.readPositon]
-	}
-
-	ret := ts.tokens[ts.readPositon]
-	ts.position = ts.readPositon
-	ts.readPositon++
-
-	return ret
-}
-
-func Tokenize(input string) TokenSequence {
+func Tokenize(input string) []token.Token {
 	tokenes := make([]token.Token, 0)
 
 	lexer := newLexer(input)
@@ -110,5 +92,5 @@ func Tokenize(input string) TokenSequence {
 		}
 	}
 
-	return TokenSequence{tokens: tokenes}
+	return tokenes
 }
