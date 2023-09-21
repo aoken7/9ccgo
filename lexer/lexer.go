@@ -75,6 +75,10 @@ func (l *Lexer) nextToken() token.Token {
 		tok = newToken(token.SLASH, "/")
 	case ';':
 		tok = newToken(token.SEMICOLON, ";")
+	case '(':
+		tok = newToken(token.LPAREN, "(")
+	case ')':
+		tok = newToken(token.RPAREN, ")")
 	default:
 		num := l.readNumber()
 		tok = newToken(token.INT, num)

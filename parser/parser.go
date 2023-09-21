@@ -16,32 +16,37 @@ type Parser struct {
 
 func New(t []token.Token) *Parser {
 	p := &Parser{tokens: t}
-	p.curToken = p.nextToken()
+	p.nextToken()
 	return p
 }
 
-func (p *Parser) nextToken() token.Token {
+func (p *Parser) nextToken() {
 	if p.tokens[p.readPosition].Type == token.EOF {
-		return p.tokens[p.readPosition]
+		return
 	}
 
-	ret := p.tokens[p.readPosition]
+	p.curToken = p.tokens[p.readPosition]
 	p.position = p.readPosition
 	p.readPosition++
-
-	return ret
 }
 
 func (p *Parser) consume(t token.TokenType) bool {
-	if p.tokens[p.readPosition].Type == t {
+	if p.curToken.Type == t {
 		p.nextToken()
-		p.curToken = p.nextToken()
 		return true
 	}
 	return false
 }
 
 func (p *Parser) primary() ast.Node {
+	if p.consume(token.LPAREN) {
+		node := p.expr()
+		if !p.consume(token.RPAREN) {
+			panic(fmt.Sprintf("expected token is ')'. got %v", p.curToken))
+		}
+		return node
+	}
+
 	// 多分Int
 	num, err := strconv.Atoi(p.curToken.Literal)
 	if err != nil {
@@ -49,6 +54,7 @@ func (p *Parser) primary() ast.Node {
 		return nil
 	}
 
+	p.nextToken()
 	return &ast.IntegerNode{Value: num}
 }
 
@@ -64,8 +70,6 @@ func (p *Parser) multiple() ast.Node {
 			return node
 		}
 	}
-
-	return node
 }
 
 func (p *Parser) expr() ast.Node {

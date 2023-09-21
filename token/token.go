@@ -18,4 +18,7 @@ const (
 	SLASH    = "/"
 
 	SEMICOLON = ";"
+
+	LPAREN = "("
+	RPAREN = ")"
 )
