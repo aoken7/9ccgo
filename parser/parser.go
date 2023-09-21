@@ -58,8 +58,18 @@ func (p *Parser) primary() ast.Node {
 	return &ast.IntegerNode{Value: num}
 }
 
+func (p *Parser) unary() ast.Node {
+	if p.consume("-") {
+		node := p.primary().(*ast.IntegerNode)
+		node.Value *= -1
+		return node
+	}
+
+	return p.primary()
+}
+
 func (p *Parser) multiple() ast.Node {
-	node := p.primary()
+	node := p.unary()
 
 	for {
 		if p.consume(token.ASTERISK) {

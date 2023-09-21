@@ -10,6 +10,7 @@ func TestNextToken(t *testing.T) {
 	12 + 34 - 5;
 	1 * 2 - 3;
 	(2 + 4) / 3;
+	-2;
 	`
 
 	tests := []struct {
@@ -39,6 +40,9 @@ func TestNextToken(t *testing.T) {
 		{token.RPAREN, ")"},
 		{token.SLASH, "/"},
 		{token.INT, "3"},
+		{token.SEMICOLON, ";"},
+		{token.MINUS, "-"},
+		{token.INT, "2"},
 		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
 	}
