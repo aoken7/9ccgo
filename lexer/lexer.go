@@ -32,6 +32,14 @@ func (l *Lexer) readChar() {
 	l.readPosition++
 }
 
+func (l *Lexer) consumeChar(ch byte) bool {
+	if l.peekChar() == ch {
+		l.readChar()
+		return true
+	}
+	return false
+}
+
 func (l *Lexer) isDigit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
 }
@@ -73,6 +81,26 @@ func (l *Lexer) nextToken() token.Token {
 		tok = newToken(token.ASTERISK, "*")
 	case '/':
 		tok = newToken(token.SLASH, "/")
+	case '<':
+		if l.consumeChar('=') {
+			tok = newToken(token.LEQ, "<=")
+		} else {
+			tok = newToken(token.LSS, "<")
+		}
+	case '>':
+		if l.consumeChar('=') {
+			tok = newToken(token.GEQ, ">=")
+		} else {
+			tok = newToken(token.GTR, ">")
+		}
+	case '=':
+		if l.consumeChar('=') {
+			tok = newToken(token.EQL, "==")
+		}
+	case '!':
+		if l.consumeChar('=') {
+			tok = newToken(token.NEQ, "!=")
+		}
 	case ';':
 		tok = newToken(token.SEMICOLON, ";")
 	case '(':

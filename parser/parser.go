@@ -71,16 +71,16 @@ func (p *Parser) multiple() ast.Node {
 
 	for {
 		if p.consume(token.ASTERISK) {
-			node = newInfixNode(node, p.primary(), "*")
+			node = newInfixNode(node, p.unary(), "*")
 		} else if p.consume(token.SLASH) {
-			node = newInfixNode(node, p.primary(), "/")
+			node = newInfixNode(node, p.unary(), "/")
 		} else {
 			return node
 		}
 	}
 }
 
-func (p *Parser) expr() ast.Node {
+func (p *Parser) add() ast.Node {
 	node := p.multiple()
 
 	for {
@@ -92,6 +92,42 @@ func (p *Parser) expr() ast.Node {
 			return node
 		}
 	}
+}
+
+func (p *Parser) relational() ast.Node {
+	node := p.add()
+
+	for {
+		if p.consume(token.LSS) {
+			node = newInfixNode(node, p.add(), "<")
+		} else if p.consume(token.LEQ) {
+			node = newInfixNode(node, p.add(), "<=")
+		} else if p.consume(token.GTR) {
+			node = newInfixNode(node, p.add(), ">")
+		} else if p.consume(token.GEQ) {
+			node = newInfixNode(node, p.add(), ">=")
+		} else {
+			return node
+		}
+	}
+}
+
+func (p *Parser) equality() ast.Node {
+	node := p.relational()
+
+	for {
+		if p.consume(token.EQL) {
+			node = newInfixNode(node, p.relational(), "==")
+		} else if p.consume(token.NEQ) {
+			node = newInfixNode(node, p.relational(), "!=")
+		} else {
+			return node
+		}
+	}
+}
+
+func (p *Parser) expr() ast.Node {
+	return p.equality()
 }
 
 func (p *Parser) Parse() ast.Node {

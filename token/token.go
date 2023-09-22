@@ -17,6 +17,14 @@ const (
 	ASTERISK = "*"
 	SLASH    = "/"
 
+	EQL = "=="
+	LSS = "<"
+	GTR = ">"
+
+	NEQ = "!="
+	LEQ = "<="
+	GEQ = ">="
+
 	SEMICOLON = ";"
 
 	LPAREN = "("
