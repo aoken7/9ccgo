@@ -8,7 +8,8 @@ type Token struct {
 }
 
 const (
-	EOF = "EOF"
+	EOF   = "EOF"
+	IDENT = "IDENT"
 
 	INT = "INT"
 
@@ -17,9 +18,10 @@ const (
 	ASTERISK = "*"
 	SLASH    = "/"
 
-	EQL = "=="
-	LSS = "<"
-	GTR = ">"
+	EQL    = "=="
+	LSS    = "<"
+	GTR    = ">"
+	ASSIGN = "="
 
 	NEQ = "!="
 	LEQ = "<="

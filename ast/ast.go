@@ -58,3 +58,11 @@ type IntegerNode struct {
 
 func (i *IntegerNode) node()          {}
 func (i *IntegerNode) String() string { return strconv.Itoa(i.Value) }
+
+type IdentiferNode struct {
+	Identifer string
+	Offset    int
+}
+
+func (i *IdentiferNode) node()          {}
+func (i *IdentiferNode) String() string { return i.Identifer }

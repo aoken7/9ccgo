@@ -30,6 +30,10 @@ func (p *Parser) nextToken() {
 	p.readPosition++
 }
 
+func (p *Parser) peek() token.TokenType {
+	return p.tokens[p.readPosition].Type
+}
+
 func (p *Parser) consume(t token.TokenType) bool {
 	if p.curToken.Type == t {
 		p.nextToken()
@@ -45,6 +49,14 @@ func (p *Parser) primary() ast.Node {
 			panic(fmt.Sprintf("expected token is ')'. got %v", p.curToken))
 		}
 		return node
+	} else if p.peek() == token.ASSIGN {
+		ident := p.curToken.Literal
+		p.nextToken()
+
+		return &ast.IdentiferNode{
+			Identifer: ident,
+			Offset:    int(ident[0] - 'a'),
+		}
 	}
 
 	// 多分Int
@@ -126,12 +138,29 @@ func (p *Parser) equality() ast.Node {
 	}
 }
 
+func (p *Parser) assign() ast.Node {
+	node := p.equality()
+
+	if p.consume(token.ASSIGN) {
+		node = newInfixNode(node, p.assign(), "=")
+	}
+
+	return node
+}
+
 func (p *Parser) expr() ast.Node {
-	return p.equality()
+	return p.assign()
+}
+
+func (p *Parser) stmt() ast.Node {
+	node := p.expr()
+	// TODO:consumeでは無くexpectを使う
+	p.consume(token.SEMICOLON)
+	return node
 }
 
 func (p *Parser) Parse() ast.Node {
-	return p.expr()
+	return p.stmt()
 }
 
 func newInfixNode(l, r ast.Node, oper token.TokenType) ast.Node {

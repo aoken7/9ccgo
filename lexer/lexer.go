@@ -96,6 +96,8 @@ func (l *Lexer) nextToken() token.Token {
 	case '=':
 		if l.consumeChar('=') {
 			tok = newToken(token.EQL, "==")
+		} else {
+			tok = newToken(token.ASSIGN, "=")
 		}
 	case '!':
 		if l.consumeChar('=') {
@@ -108,8 +110,12 @@ func (l *Lexer) nextToken() token.Token {
 	case ')':
 		tok = newToken(token.RPAREN, ")")
 	default:
-		num := l.readNumber()
-		tok = newToken(token.INT, num)
+		if l.isDigit(l.ch) {
+			num := l.readNumber()
+			tok = newToken(token.INT, num)
+		} else {
+			tok = newToken(token.IDENT, string(l.ch))
+		}
 	}
 
 	l.readChar()
