@@ -60,9 +60,7 @@ func (p *Parser) primary() ast.Node {
 
 func (p *Parser) unary() ast.Node {
 	if p.consume("-") {
-		node := p.primary().(*ast.IntegerNode)
-		node.Value *= -1
-		return node
+		return &ast.PrefixOperatorNode{Operator: "-", Rhs: p.primary()}
 	}
 
 	return p.primary()
@@ -101,7 +99,7 @@ func (p *Parser) Parse() ast.Node {
 }
 
 func newInfixNode(l, r ast.Node, oper token.TokenType) ast.Node {
-	node := &ast.InfixNode{}
+	node := &ast.InfixOperatorNode{}
 	node.Operator = oper
 	node.Lhs = l
 	node.Rhs = r
