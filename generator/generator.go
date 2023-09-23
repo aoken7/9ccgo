@@ -54,6 +54,16 @@ func calc(node ast.OperatorNode) string {
 	return out.String()
 }
 
+func genLval(node ast.IdentiferNode) string {
+	var out bytes.Buffer
+
+	out.WriteString("\tmov rax, rbp\n")
+	out.WriteString(fmt.Sprintf("\tsub rax, %d\n", node.Offset))
+	out.WriteString("\tpush rax\n")
+
+	return out.String()
+}
+
 func gen(node ast.Node) string {
 	var out bytes.Buffer
 
@@ -69,9 +79,27 @@ func gen(node ast.Node) string {
 		return fmt.Sprintf("\tpush %d\n", n.Value)
 	}
 
+	if n, ok := node.(*ast.IdentiferNode); ok {
+		out.WriteString(genLval(*n))
+		out.WriteString("\tpop rax\n")
+		out.WriteString("\tmov rax, [rax]\n")
+		out.WriteString("\tpush rax\n")
+		return out.String()
+	}
+
 	n, ok := node.(*ast.InfixOperatorNode)
 	if !ok {
 		panic("gen error: unexpected node")
+	}
+
+	if n.OperatorType() == token.ASSIGN {
+		left := n.Lhs.(*ast.IdentiferNode)
+		out.WriteString(genLval(*left))
+		out.WriteString(gen(n))
+		out.WriteString("\tpop rdi\n")
+		out.WriteString("\tpop rax\n")
+		out.WriteString("\tmov [rax], rdi\n")
+		out.WriteString("\tpush rdi\ns")
 	}
 
 	out.WriteString(gen(n.Lhs))
@@ -90,9 +118,16 @@ func Compile(ast ast.Node) string {
 	out.WriteString(".global main\n")
 	out.WriteString("main:\n")
 
-	out.WriteString(gen(ast))
+	out.WriteString("\tpush rbp\n")
+	out.WriteString("\tmov rbp, rsp\n")
+	out.WriteString("\tsub rsp, 208\n")
 
+	// TODO: genが式しか取れないので文を表現する型を作成する
+	out.WriteString(gen(ast))
 	out.WriteString("\tpop rax\n")
+
+	out.WriteString("\tmov rsp, rbp\n")
+	out.WriteString("\tpop rbp\n")
 	out.WriteString("\tret\n")
 
 	return out.String()
