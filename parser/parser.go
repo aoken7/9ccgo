@@ -174,8 +174,21 @@ func (p *Parser) expressionStatement(env *Env) ast.Node {
 	return es
 }
 
+func (p *Parser) jumpStatement(env *Env) ast.Node {
+	if p.consume(token.RETURN) {
+		exp := p.expr(env)
+		return &ast.ReturnStatement{Expression: exp}
+	}
+	panic(fmt.Sprintf("parser err: expected return. but got=%T\n", p.peek()))
+}
+
 func (p *Parser) stmt(env *Env) ast.Node {
-	node := p.expressionStatement(env)
+	var node ast.Node
+	if p.curToken.Type == token.RETURN {
+		node = p.jumpStatement(env)
+	} else {
+		node = p.expressionStatement(env)
+	}
 	// TODO:consumeでは無くexpectを使う
 	p.consume(token.SEMICOLON)
 	return node

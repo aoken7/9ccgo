@@ -29,3 +29,11 @@ type ExpressionStatement struct {
 func (es *ExpressionStatement) node()          {}
 func (es *ExpressionStatement) statementNode() {}
 func (es *ExpressionStatement) String() string { return es.Expression.String() }
+
+type ReturnStatement struct {
+	Expression Expression
+}
+
+func (rs *ReturnStatement) node()          {}
+func (rs *ReturnStatement) statementNode() {}
+func (rs *ReturnStatement) String() string { return rs.Expression.String() }

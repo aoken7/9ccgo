@@ -64,8 +64,21 @@ func genLval(node ast.IdentiferNode) string {
 	return out.String()
 }
 
-func gen(node ast.Expression) string {
+func gen(node ast.Node) string {
 	var out bytes.Buffer
+
+	if n, ok := node.(*ast.ExpressionStatement); ok {
+		return gen(n.Expression)
+	}
+
+	if n, ok := node.(*ast.ReturnStatement); ok {
+		out.WriteString(gen(n.Expression))
+		out.WriteString("\tpop rax\n")
+		out.WriteString("\tmov rsp, rbp\n")
+		out.WriteString("\tpop rbp\n")
+		out.WriteString("\tret\n")
+		return out.String()
+	}
 
 	if n, ok := node.(*ast.PrefixOperatorNode); ok {
 		out.WriteString("\tpush 0\n")
@@ -123,19 +136,15 @@ func Compile(node ast.Node) string {
 
 	out.WriteString("\tpush rbp\n")
 	out.WriteString("\tmov rbp, rsp\n")
-	out.WriteString("\tsub rsp, 208\n")
 
 	compStmt, ok := node.(*ast.CompoundStatement)
 	if !ok {
 		panic(fmt.Sprintf("gen error: node is not *ast.CompoundStatement. got=%T\n", compStmt))
 	}
 	for _, stmt := range compStmt.Statements {
-		expStmt, ok := stmt.(*ast.ExpressionStatement)
-		if !ok {
-			panic(fmt.Sprintf("gen error: stmt is not *ast.ExpressionEtatement. got=%T\n", expStmt))
-		}
-		out.WriteString(gen(expStmt.Expression))
+		out.WriteString(gen(stmt))
 		out.WriteString("\tpop rax\n")
+
 	}
 
 	out.WriteString("\tmov rsp, rbp\n")

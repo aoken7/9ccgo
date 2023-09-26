@@ -125,7 +125,12 @@ func (l *Lexer) nextToken() token.Token {
 			tok = newToken(token.INT, num)
 		} else {
 			ident := l.readIdentifer()
-			tok = newToken(token.IDENT, ident)
+
+			if t, ok := token.Keywords[ident]; ok {
+				tok = newToken(t, ident)
+			} else {
+				tok = newToken(token.IDENT, ident)
+			}
 		}
 	}
 

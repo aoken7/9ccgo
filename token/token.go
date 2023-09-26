@@ -31,4 +31,10 @@ const (
 
 	LPAREN = "("
 	RPAREN = ")"
+
+	RETURN = "return"
 )
+
+var Keywords = map[string]TokenType{
+	"return": RETURN,
+}

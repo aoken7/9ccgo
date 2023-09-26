@@ -15,6 +15,7 @@ func TestNextToken(t *testing.T) {
 	2 <= 3 != 4 >= 5;
 	a = 2;
 	foo + bar;
+	return 123;
 	`
 
 	tests := []struct {
@@ -71,6 +72,9 @@ func TestNextToken(t *testing.T) {
 		{token.IDENT, "foo"},
 		{token.PLUS, "+"},
 		{token.IDENT, "bar"},
+		{token.SEMICOLON, ";"},
+		{token.RETURN, "return"},
+		{token.INT, "123"},
 		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
 	}

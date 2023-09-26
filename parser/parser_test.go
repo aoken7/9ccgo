@@ -71,3 +71,17 @@ func TestCompoundStatement(t *testing.T) {
 		t.Fatalf("got %s, want %s", actual, expected)
 	}
 }
+
+func TestReturnStatement(t *testing.T) {
+	input := `
+		return 123;
+	`
+
+	tokens := lexer.Tokenize(input)
+	p := New(tokens)
+	actual := p.Parse().String()
+	expected := "123"
+	if actual != expected {
+		t.Fatalf("got %s, want %s", actual, expected)
+	}
+}
