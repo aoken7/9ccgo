@@ -26,7 +26,7 @@ func New(t []token.Token) *Parser {
 }
 
 func (p *Parser) nextToken() {
-	if p.tokens[p.position].Type == token.EOF {
+	if p.expect(token.EOF) {
 		return
 	}
 
@@ -36,15 +36,19 @@ func (p *Parser) nextToken() {
 }
 
 func (p *Parser) peek() token.TokenType {
-	return p.tokens[p.readPosition].Type
+	return p.curToken.Type
 }
 
 func (p *Parser) consume(t token.TokenType) bool {
-	if p.curToken.Type == t {
+	if p.expect(t) {
 		p.nextToken()
 		return true
 	}
 	return false
+}
+
+func (p *Parser) expect(t token.TokenType) bool {
+	return p.curToken.Type == t
 }
 
 func (p *Parser) primary(env *Env) ast.Expression {
@@ -54,7 +58,7 @@ func (p *Parser) primary(env *Env) ast.Expression {
 			panic(fmt.Sprintf("expected token is ')'. got %v", p.curToken))
 		}
 		return node
-	} else if p.curToken.Type == token.IDENT {
+	} else if p.expect(token.IDENT) {
 		// p.comsume() するとidentが取れないのでcurTokenで判定
 		ident := p.curToken.Literal
 		p.nextToken()

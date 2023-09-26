@@ -47,6 +47,16 @@ func calc(node ast.OperatorNode) string {
 		out.WriteString("\tcmp rdi, rax\n")
 		out.WriteString("\tsetle al\n")
 		out.WriteString("\tmovzb rax, al\n")
+	case token.ASSIGN:
+		n := node.(*ast.InfixOperatorNode)
+		left := n.Lhs.(*ast.IdentiferNode)
+		right := n.Rhs
+		out.WriteString(genLval(*left))
+		out.WriteString(gen(right))
+		out.WriteString("\tpop rdi\n")
+		out.WriteString("\tpop rax\n")
+		out.WriteString("\tmov [rax], rdi\n")
+		out.WriteString("\tpush rdi\n")
 	}
 
 	out.WriteString("\tpush rax\n")
@@ -67,33 +77,35 @@ func genLval(node ast.IdentiferNode) string {
 func gen(node ast.Node) string {
 	var out bytes.Buffer
 
-	if n, ok := node.(*ast.ExpressionStatement); ok {
-		return gen(n.Expression)
-	}
+	switch n := node.(type) {
+	case *ast.CompoundStatement:
+		for _, stmt := range n.Statements {
+			out.WriteString(gen(stmt))
+			out.WriteString("\tpop rax\n")
+		}
+		return out.String()
 
-	if n, ok := node.(*ast.ReturnStatement); ok {
+	case *ast.ExpressionStatement:
+		return gen(n.Expression)
+
+	case *ast.ReturnStatement:
 		out.WriteString(gen(n.Expression))
 		out.WriteString("\tpop rax\n")
 		out.WriteString("\tmov rsp, rbp\n")
 		out.WriteString("\tpop rbp\n")
 		out.WriteString("\tret\n")
 		return out.String()
-	}
 
-	if n, ok := node.(*ast.PrefixOperatorNode); ok {
+	case *ast.PrefixOperatorNode:
 		out.WriteString("\tpush 0\n")
 		out.WriteString(gen(n.Rhs))
 		out.WriteString(calc(n))
-
 		return out.String()
-	}
 
-	if n, ok := node.(*ast.IntegerNode); ok {
+	case *ast.IntegerNode:
 		return fmt.Sprintf("\tpush %d\n", n.Value)
-	}
 
-	// 変数のload
-	if n, ok := node.(*ast.IdentiferNode); ok {
+	case *ast.IdentiferNode:
 		out.WriteString(genLval(*n))
 		out.WriteString("\tpop rax\n")
 		out.WriteString("\tmov rax, [rax]\n")
@@ -104,18 +116,6 @@ func gen(node ast.Node) string {
 	n, ok := node.(*ast.InfixOperatorNode)
 	if !ok {
 		panic(fmt.Sprintf("gen error: node is not *ast.InfixOperatorNode. got=%T.", node))
-	}
-
-	// 変数のstore
-	if n.OperatorType() == token.ASSIGN {
-		left := n.Lhs.(*ast.IdentiferNode)
-		right := n.Rhs
-		out.WriteString(genLval(*left))
-		out.WriteString(gen(right))
-		out.WriteString("\tpop rdi\n")
-		out.WriteString("\tpop rax\n")
-		out.WriteString("\tmov [rax], rdi\n")
-		out.WriteString("\tpush rdi\n")
 	}
 
 	out.WriteString(gen(n.Lhs))
@@ -137,15 +137,7 @@ func Compile(node ast.Node) string {
 	out.WriteString("\tpush rbp\n")
 	out.WriteString("\tmov rbp, rsp\n")
 
-	compStmt, ok := node.(*ast.CompoundStatement)
-	if !ok {
-		panic(fmt.Sprintf("gen error: node is not *ast.CompoundStatement. got=%T\n", compStmt))
-	}
-	for _, stmt := range compStmt.Statements {
-		out.WriteString(gen(stmt))
-		out.WriteString("\tpop rax\n")
-
-	}
+	out.WriteString(gen(node))
 
 	out.WriteString("\tmov rsp, rbp\n")
 	out.WriteString("\tpop rbp\n")
