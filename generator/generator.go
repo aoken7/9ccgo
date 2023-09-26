@@ -64,7 +64,7 @@ func genLval(node ast.IdentiferNode) string {
 	return out.String()
 }
 
-func gen(node ast.Node) string {
+func gen(node ast.Expression) string {
 	var out bytes.Buffer
 
 	if n, ok := node.(*ast.PrefixOperatorNode); ok {
@@ -89,7 +89,7 @@ func gen(node ast.Node) string {
 
 	n, ok := node.(*ast.InfixOperatorNode)
 	if !ok {
-		panic("gen error: unexpected node")
+		panic(fmt.Sprintf("gen error: node is not *ast.InfixOperatorNode. got=%T.", node))
 	}
 
 	if n.OperatorType() == token.ASSIGN {
@@ -110,7 +110,7 @@ func gen(node ast.Node) string {
 	return out.String()
 }
 
-func Compile(ast ast.Node) string {
+func Compile(node ast.Node) string {
 
 	var out bytes.Buffer
 
@@ -122,8 +122,18 @@ func Compile(ast ast.Node) string {
 	out.WriteString("\tmov rbp, rsp\n")
 	out.WriteString("\tsub rsp, 208\n")
 
-	// TODO: genが式しか取れないので文を表現する型を作成する
-	out.WriteString(gen(ast))
+	compStmt, ok := node.(*ast.CompoundStatement)
+	if !ok {
+		panic(fmt.Sprintf("gen error: node is not *ast.CompoundStatement. got=%T\n", compStmt))
+	}
+	for _, stmt := range compStmt.Statements {
+		expStmt, ok := stmt.(*ast.ExpressionStatement)
+		if !ok {
+			panic(fmt.Sprintf("gen error: stmt is not *ast.ExpressionEtatement. got=%T\n", expStmt))
+		}
+		out.WriteString(gen(expStmt.Expression))
+	}
+
 	out.WriteString("\tpop rax\n")
 
 	out.WriteString("\tmov rsp, rbp\n")

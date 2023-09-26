@@ -27,5 +27,6 @@ assert 1 '1 < 2'
 assert 0 '1 > 2'
 assert 1 '1 <= 2 == 2 <= 2'
 assert 0 '1 >= 2 == 2 >= 2'
+assert 5 '1; 2+3;'
 
 echo OK

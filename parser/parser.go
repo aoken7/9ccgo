@@ -21,7 +21,7 @@ func New(t []token.Token) *Parser {
 }
 
 func (p *Parser) nextToken() {
-	if p.tokens[p.readPosition].Type == token.EOF {
+	if p.tokens[p.position].Type == token.EOF {
 		return
 	}
 
@@ -42,7 +42,7 @@ func (p *Parser) consume(t token.TokenType) bool {
 	return false
 }
 
-func (p *Parser) primary() ast.Node {
+func (p *Parser) primary() ast.Expression {
 	if p.consume(token.LPAREN) {
 		node := p.expr()
 		if !p.consume(token.RPAREN) {
@@ -70,7 +70,7 @@ func (p *Parser) primary() ast.Node {
 	return &ast.IntegerNode{Value: num}
 }
 
-func (p *Parser) unary() ast.Node {
+func (p *Parser) unary() ast.Expression {
 	if p.consume("-") {
 		return &ast.PrefixOperatorNode{Operator: "-", Rhs: p.primary()}
 	}
@@ -78,7 +78,7 @@ func (p *Parser) unary() ast.Node {
 	return p.primary()
 }
 
-func (p *Parser) multiple() ast.Node {
+func (p *Parser) multiple() ast.Expression {
 	node := p.unary()
 
 	for {
@@ -92,7 +92,7 @@ func (p *Parser) multiple() ast.Node {
 	}
 }
 
-func (p *Parser) add() ast.Node {
+func (p *Parser) add() ast.Expression {
 	node := p.multiple()
 
 	for {
@@ -106,7 +106,7 @@ func (p *Parser) add() ast.Node {
 	}
 }
 
-func (p *Parser) relational() ast.Node {
+func (p *Parser) relational() ast.Expression {
 	node := p.add()
 
 	for {
@@ -124,7 +124,7 @@ func (p *Parser) relational() ast.Node {
 	}
 }
 
-func (p *Parser) equality() ast.Node {
+func (p *Parser) equality() ast.Expression {
 	node := p.relational()
 
 	for {
@@ -138,7 +138,7 @@ func (p *Parser) equality() ast.Node {
 	}
 }
 
-func (p *Parser) assign() ast.Node {
+func (p *Parser) assign() ast.Expression {
 	node := p.equality()
 
 	if p.consume(token.ASSIGN) {
@@ -148,22 +148,45 @@ func (p *Parser) assign() ast.Node {
 	return node
 }
 
-func (p *Parser) expr() ast.Node {
+func (p *Parser) expr() ast.Expression {
 	return p.assign()
 }
 
-func (p *Parser) stmt() ast.Node {
+func (p *Parser) expressionStatement() ast.Node {
 	node := p.expr()
+
+	es := &ast.ExpressionStatement{}
+	es.Expression = node
+	return es
+}
+
+func (p *Parser) stmt() ast.Node {
+	node := p.expressionStatement()
 	// TODO:consumeでは無くexpectを使う
 	p.consume(token.SEMICOLON)
 	return node
 }
 
-func (p *Parser) Parse() ast.Node {
-	return p.stmt()
+func (p *Parser) compoundStatement() ast.Node {
+	node := &ast.CompoundStatement{}
+
+	for p.curToken.Type != token.EOF {
+		n := p.stmt()
+		stmt, ok := n.(ast.Statement)
+		if !ok {
+			panic(fmt.Sprintf("not statement. got %T\n", n))
+		}
+		node.Statements = append(node.Statements, stmt)
+	}
+
+	return node
 }
 
-func newInfixNode(l, r ast.Node, oper token.TokenType) ast.Node {
+func (p *Parser) Parse() ast.Node {
+	return p.compoundStatement()
+}
+
+func newInfixNode(l, r ast.Expression, oper token.TokenType) ast.Expression {
 	node := &ast.InfixOperatorNode{}
 	node.Operator = oper
 	node.Lhs = l
