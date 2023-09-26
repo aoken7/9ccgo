@@ -79,6 +79,7 @@ func gen(node ast.Expression) string {
 		return fmt.Sprintf("\tpush %d\n", n.Value)
 	}
 
+	// 変数のload
 	if n, ok := node.(*ast.IdentiferNode); ok {
 		out.WriteString(genLval(*n))
 		out.WriteString("\tpop rax\n")
@@ -92,14 +93,16 @@ func gen(node ast.Expression) string {
 		panic(fmt.Sprintf("gen error: node is not *ast.InfixOperatorNode. got=%T.", node))
 	}
 
+	// 変数のstore
 	if n.OperatorType() == token.ASSIGN {
 		left := n.Lhs.(*ast.IdentiferNode)
+		right := n.Rhs
 		out.WriteString(genLval(*left))
-		out.WriteString(gen(n))
+		out.WriteString(gen(right))
 		out.WriteString("\tpop rdi\n")
 		out.WriteString("\tpop rax\n")
 		out.WriteString("\tmov [rax], rdi\n")
-		out.WriteString("\tpush rdi\ns")
+		out.WriteString("\tpush rdi\n")
 	}
 
 	out.WriteString(gen(n.Lhs))
@@ -132,9 +135,8 @@ func Compile(node ast.Node) string {
 			panic(fmt.Sprintf("gen error: stmt is not *ast.ExpressionEtatement. got=%T\n", expStmt))
 		}
 		out.WriteString(gen(expStmt.Expression))
+		out.WriteString("\tpop rax\n")
 	}
-
-	out.WriteString("\tpop rax\n")
 
 	out.WriteString("\tmov rsp, rbp\n")
 	out.WriteString("\tpop rbp\n")

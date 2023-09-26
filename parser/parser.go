@@ -49,7 +49,8 @@ func (p *Parser) primary() ast.Expression {
 			panic(fmt.Sprintf("expected token is ')'. got %v", p.curToken))
 		}
 		return node
-	} else if p.peek() == token.ASSIGN {
+	} else if p.curToken.Type == token.IDENT {
+		// p.comsume() するとidentが取れないのでcurTokenで判定
 		ident := p.curToken.Literal
 		p.nextToken()
 
