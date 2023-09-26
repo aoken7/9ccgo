@@ -1,6 +1,9 @@
 package lexer
 
-import "9ccgo/token"
+import (
+	"9ccgo/token"
+	"fmt"
+)
 
 type Lexer struct {
 	input        string
@@ -40,13 +43,20 @@ func (l *Lexer) consumeChar(ch byte) bool {
 	return false
 }
 
-func (l *Lexer) isDigit(ch byte) bool {
-	return '0' <= ch && ch <= '9'
-}
-
 func (l *Lexer) readNumber() string {
 	position := l.position
-	for l.isDigit(l.peekChar()) {
+	for isDigit(l.peekChar()) {
+		l.readChar()
+	}
+	return l.input[position:l.readPosition]
+}
+
+func (l *Lexer) readIdentifer() string {
+	position := l.position
+	if !isDigit(l.ch) && !isLetter(l.ch) {
+		panic(fmt.Sprintf("lexer err: %c is not underscore or alphabet.", l.ch))
+	}
+	for isIdentifer(l.peekChar()) {
 		l.readChar()
 	}
 	return l.input[position:l.readPosition]
@@ -110,11 +120,12 @@ func (l *Lexer) nextToken() token.Token {
 	case ')':
 		tok = newToken(token.RPAREN, ")")
 	default:
-		if l.isDigit(l.ch) {
+		if isDigit(l.ch) {
 			num := l.readNumber()
 			tok = newToken(token.INT, num)
 		} else {
-			tok = newToken(token.IDENT, string(l.ch))
+			ident := l.readIdentifer()
+			tok = newToken(token.IDENT, ident)
 		}
 	}
 
@@ -135,4 +146,16 @@ func Tokenize(input string) []token.Token {
 	}
 
 	return tokenes
+}
+
+func isDigit(ch byte) bool {
+	return '0' <= ch && ch <= '9'
+}
+
+func isLetter(ch byte) bool {
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z'
+}
+
+func isIdentifer(ch byte) bool {
+	return isLetter(ch) || isDigit(ch) || ch == '_'
 }

@@ -7,6 +7,11 @@ import (
 	"strconv"
 )
 
+type Env struct {
+	env    map[string]int
+	offset int
+}
+
 type Parser struct {
 	tokens       []token.Token
 	curToken     token.Token
@@ -42,9 +47,9 @@ func (p *Parser) consume(t token.TokenType) bool {
 	return false
 }
 
-func (p *Parser) primary() ast.Expression {
+func (p *Parser) primary(env *Env) ast.Expression {
 	if p.consume(token.LPAREN) {
-		node := p.expr()
+		node := p.expr(env)
 		if !p.consume(token.RPAREN) {
 			panic(fmt.Sprintf("expected token is ')'. got %v", p.curToken))
 		}
@@ -54,9 +59,17 @@ func (p *Parser) primary() ast.Expression {
 		ident := p.curToken.Literal
 		p.nextToken()
 
+		offset, ok := env.env[ident]
+		if !ok {
+			env.env[ident] = env.offset
+			offset = env.offset
+			env.offset += 8
+		}
+
 		return &ast.IdentiferNode{
 			Identifer: ident,
-			Offset:    int(ident[0] - 'a'),
+			Offset:    offset,
+			//Offset: int(ident[0] - 'a'),
 		}
 	}
 
@@ -71,108 +84,109 @@ func (p *Parser) primary() ast.Expression {
 	return &ast.IntegerNode{Value: num}
 }
 
-func (p *Parser) unary() ast.Expression {
+func (p *Parser) unary(env *Env) ast.Expression {
 	if p.consume("-") {
-		return &ast.PrefixOperatorNode{Operator: "-", Rhs: p.primary()}
+		return &ast.PrefixOperatorNode{Operator: "-", Rhs: p.primary(env)}
 	}
 
-	return p.primary()
+	return p.primary(env)
 }
 
-func (p *Parser) multiple() ast.Expression {
-	node := p.unary()
+func (p *Parser) multiple(env *Env) ast.Expression {
+	node := p.unary(env)
 
 	for {
 		if p.consume(token.ASTERISK) {
-			node = newInfixNode(node, p.unary(), "*")
+			node = newInfixNode(node, p.unary(env), "*")
 		} else if p.consume(token.SLASH) {
-			node = newInfixNode(node, p.unary(), "/")
+			node = newInfixNode(node, p.unary(env), "/")
 		} else {
 			return node
 		}
 	}
 }
 
-func (p *Parser) add() ast.Expression {
-	node := p.multiple()
+func (p *Parser) add(env *Env) ast.Expression {
+	node := p.multiple(env)
 
 	for {
 		if p.consume(token.PLUS) {
-			node = newInfixNode(node, p.multiple(), "+")
+			node = newInfixNode(node, p.multiple(env), "+")
 		} else if p.consume(token.MINUS) {
-			node = newInfixNode(node, p.multiple(), "-")
+			node = newInfixNode(node, p.multiple(env), "-")
 		} else {
 			return node
 		}
 	}
 }
 
-func (p *Parser) relational() ast.Expression {
-	node := p.add()
+func (p *Parser) relational(env *Env) ast.Expression {
+	node := p.add(env)
 
 	for {
 		if p.consume(token.LSS) {
-			node = newInfixNode(node, p.add(), "<")
+			node = newInfixNode(node, p.add(env), "<")
 		} else if p.consume(token.LEQ) {
-			node = newInfixNode(node, p.add(), "<=")
+			node = newInfixNode(node, p.add(env), "<=")
 		} else if p.consume(token.GTR) {
-			node = newInfixNode(node, p.add(), ">")
+			node = newInfixNode(node, p.add(env), ">")
 		} else if p.consume(token.GEQ) {
-			node = newInfixNode(node, p.add(), ">=")
+			node = newInfixNode(node, p.add(env), ">=")
 		} else {
 			return node
 		}
 	}
 }
 
-func (p *Parser) equality() ast.Expression {
-	node := p.relational()
+func (p *Parser) equality(env *Env) ast.Expression {
+	node := p.relational(env)
 
 	for {
 		if p.consume(token.EQL) {
-			node = newInfixNode(node, p.relational(), "==")
+			node = newInfixNode(node, p.relational(env), "==")
 		} else if p.consume(token.NEQ) {
-			node = newInfixNode(node, p.relational(), "!=")
+			node = newInfixNode(node, p.relational(env), "!=")
 		} else {
 			return node
 		}
 	}
 }
 
-func (p *Parser) assign() ast.Expression {
-	node := p.equality()
+func (p *Parser) assign(env *Env) ast.Expression {
+	node := p.equality(env)
 
 	if p.consume(token.ASSIGN) {
-		node = newInfixNode(node, p.assign(), "=")
+		node = newInfixNode(node, p.assign(env), "=")
 	}
 
 	return node
 }
 
-func (p *Parser) expr() ast.Expression {
-	return p.assign()
+func (p *Parser) expr(env *Env) ast.Expression {
+	return p.assign(env)
 }
 
-func (p *Parser) expressionStatement() ast.Node {
-	node := p.expr()
+func (p *Parser) expressionStatement(env *Env) ast.Node {
+	node := p.expr(env)
 
 	es := &ast.ExpressionStatement{}
 	es.Expression = node
 	return es
 }
 
-func (p *Parser) stmt() ast.Node {
-	node := p.expressionStatement()
+func (p *Parser) stmt(env *Env) ast.Node {
+	node := p.expressionStatement(env)
 	// TODO:consumeでは無くexpectを使う
 	p.consume(token.SEMICOLON)
 	return node
 }
 
 func (p *Parser) compoundStatement() ast.Node {
+	env := &Env{env: map[string]int{}}
 	node := &ast.CompoundStatement{}
 
 	for p.curToken.Type != token.EOF {
-		n := p.stmt()
+		n := p.stmt(env)
 		stmt, ok := n.(ast.Statement)
 		if !ok {
 			panic(fmt.Sprintf("not statement. got %T\n", n))

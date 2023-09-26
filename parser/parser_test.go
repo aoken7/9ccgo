@@ -22,6 +22,7 @@ func TestOperatorPrecedence(t *testing.T) {
 		{"2 < 3 == 1 + 3 > 5", "((2 < 3) == ((1 + 3) > 5))"},
 		{"2 <= 3 != 1 + 3 >= 5", "((2 <= 3) != ((1 + 3) >= 5))"},
 		{"a = 1", "(a = 1)"},
+		{"foo + bar", "(foo + bar)"},
 	}
 
 	for _, tt := range tests {
