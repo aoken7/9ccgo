@@ -117,8 +117,12 @@ func (l *Lexer) nextToken() token.Token {
 		tok = newToken(token.SEMICOLON, ";")
 	case '(':
 		tok = newToken(token.LPAREN, "(")
+	case '{':
+		tok = newToken(token.LBRACE, "{")
 	case ')':
 		tok = newToken(token.RPAREN, ")")
+	case '}':
+		tok = newToken(token.RBRACE, "}")
 	default:
 		if isDigit(l.ch) {
 			num := l.readNumber()

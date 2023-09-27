@@ -5,7 +5,15 @@ import (
 	"9ccgo/token"
 	"bytes"
 	"fmt"
+	"strconv"
 )
+
+var jumpLabel = -1
+
+func getJumpLabel() string {
+	jumpLabel++
+	return ".Lend" + strconv.Itoa(jumpLabel)
+}
 
 func calc(node ast.OperatorNode) string {
 	var out bytes.Buffer
@@ -94,6 +102,18 @@ func gen(node ast.Node) string {
 		out.WriteString("\tmov rsp, rbp\n")
 		out.WriteString("\tpop rbp\n")
 		out.WriteString("\tret\n")
+		return out.String()
+
+	case *ast.IfStatement:
+		out.WriteString(gen(n.Expression))
+		out.WriteString("\tpop rax\n")
+		out.WriteString("\tcmp rax, 0\n")
+
+		label := getJumpLabel()
+
+		out.WriteString("\tje " + label + "\n")
+		out.WriteString(gen(n.TrueStatement))
+		out.WriteString(label + ":\n")
 		return out.String()
 
 	case *ast.PrefixOperatorNode:

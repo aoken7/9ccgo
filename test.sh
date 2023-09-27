@@ -31,8 +31,9 @@ assert 5 '1; 2+3;'
 assert 3 'a=3; a;'
 assert 8 'a=3; z=5; a+z;'
 assert 3 'foo=3; foo;'
-assert 8 'foo=3; bar=5; foo+bar;'
+assert 8 '{ foo=3; bar=5; foo+bar; }'
 assert 3 'return 3; 5;'
 assert 3 'return 3; return 5;'
+assert 5 'if(1 + 2 > 0) { return 5; } return 3;'
 
 echo OK

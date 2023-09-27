@@ -30,11 +30,18 @@ const (
 	SEMICOLON = ";"
 
 	LPAREN = "("
-	RPAREN = ")"
+	LBRACE = "{"
 
+	RPAREN = ")"
+	RBRACE = "}"
+
+	IF     = "if"
+	ELSE   = "else"
 	RETURN = "return"
 )
 
 var Keywords = map[string]TokenType{
 	"return": RETURN,
+	"if":     IF,
+	"else":   ELSE,
 }

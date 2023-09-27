@@ -16,6 +16,7 @@ func TestNextToken(t *testing.T) {
 	a = 2;
 	foo + bar;
 	return 123;
+	if (2 + 3 == 5){ return 10; }
 	`
 
 	tests := []struct {
@@ -76,6 +77,19 @@ func TestNextToken(t *testing.T) {
 		{token.RETURN, "return"},
 		{token.INT, "123"},
 		{token.SEMICOLON, ";"},
+		{token.IF, "if"},
+		{token.LPAREN, "("},
+		{token.INT, "2"},
+		{token.PLUS, "+"},
+		{token.INT, "3"},
+		{token.EQL, "=="},
+		{token.INT, "5"},
+		{token.RPAREN, ")"},
+		{token.LBRACE, "{"},
+		{token.RETURN, "return"},
+		{token.INT, "10"},
+		{token.SEMICOLON, ";"},
+		{token.RBRACE, "}"},
 		{token.EOF, ""},
 	}
 

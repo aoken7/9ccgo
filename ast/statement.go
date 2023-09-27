@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"bytes"
 	"strings"
 )
 
@@ -37,3 +38,29 @@ type ReturnStatement struct {
 func (rs *ReturnStatement) node()          {}
 func (rs *ReturnStatement) statementNode() {}
 func (rs *ReturnStatement) String() string { return rs.Expression.String() }
+
+type IfStatement struct {
+	Expression     Expression
+	TrueStatement  Statement
+	FalseStatement Statement
+}
+
+func (is *IfStatement) node()          {}
+func (is *IfStatement) statementNode() {}
+func (is *IfStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("if(")
+	out.WriteString(is.Expression.String())
+	out.WriteString("){ ")
+	out.WriteString(is.TrueStatement.String())
+	out.WriteString(" }")
+
+	if is.FalseStatement != nil {
+		out.WriteString("else{")
+		out.WriteString(is.FalseStatement.String())
+		out.WriteString("}")
+	}
+
+	return out.String()
+}

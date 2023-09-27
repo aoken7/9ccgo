@@ -170,7 +170,7 @@ func (p *Parser) expr(env *Env) ast.Expression {
 	return p.assign(env)
 }
 
-func (p *Parser) expressionStatement(env *Env) ast.Node {
+func (p *Parser) expressionStatement(env *Env) ast.Statement {
 	node := p.expr(env)
 
 	es := &ast.ExpressionStatement{}
@@ -178,7 +178,7 @@ func (p *Parser) expressionStatement(env *Env) ast.Node {
 	return es
 }
 
-func (p *Parser) jumpStatement(env *Env) ast.Node {
+func (p *Parser) jumpStatement(env *Env) ast.Statement {
 	if p.consume(token.RETURN) {
 		exp := p.expr(env)
 		return &ast.ReturnStatement{Expression: exp}
@@ -186,29 +186,46 @@ func (p *Parser) jumpStatement(env *Env) ast.Node {
 	panic(fmt.Sprintf("parser err: expected return. but got=%T\n", p.peek()))
 }
 
-func (p *Parser) stmt(env *Env) ast.Node {
-	var node ast.Node
-	if p.curToken.Type == token.RETURN {
-		node = p.jumpStatement(env)
-	} else {
-		node = p.expressionStatement(env)
+func (p *Parser) selectionStatement(env *Env) ast.Statement {
+	if p.consume(token.IF) {
+		selectionStmt := &ast.IfStatement{}
+		p.consume("(")
+		selectionStmt.Expression = p.expr(env)
+		p.consume(")")
+		selectionStmt.TrueStatement = p.stmt(env)
+
+		return selectionStmt
+	}
+
+	return nil
+}
+
+func (p *Parser) stmt(env *Env) ast.Statement {
+	var stmt ast.Statement
+	switch p.curToken.Type {
+	case token.RETURN:
+		stmt = p.jumpStatement(env)
+	case token.IF:
+		stmt = p.selectionStatement(env)
+	case token.LBRACE:
+		stmt = p.compoundStatement()
+	default:
+		stmt = p.expressionStatement(env)
 	}
 	// TODO:consumeでは無くexpectを使う
 	p.consume(token.SEMICOLON)
-	return node
+	return stmt
 }
 
-func (p *Parser) compoundStatement() ast.Node {
+// TODO: 親の変数にアクセスする方法を考える
+func (p *Parser) compoundStatement() ast.Statement {
 	env := &Env{env: map[string]int{}}
 	node := &ast.CompoundStatement{}
 
-	for p.curToken.Type != token.EOF {
-		n := p.stmt(env)
-		stmt, ok := n.(ast.Statement)
-		if !ok {
-			panic(fmt.Sprintf("not statement. got %T\n", n))
-		}
-		node.Statements = append(node.Statements, stmt)
+	p.consume("{")
+
+	for !p.consume(token.RBRACE) && !p.expect(token.EOF) {
+		node.Statements = append(node.Statements, p.stmt(env))
 	}
 
 	return node

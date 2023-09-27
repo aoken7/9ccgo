@@ -85,3 +85,32 @@ func TestReturnStatement(t *testing.T) {
 		t.Fatalf("got %s, want %s", actual, expected)
 	}
 }
+
+func TestIfStatement(t *testing.T) {
+	input := `
+	if (5 == 2 + 3){
+		return 5;
+	}
+	`
+	tokens := lexer.Tokenize(input)
+	p := New(tokens)
+	node := p.Parse()
+
+	cmpStmt, ok := node.(*ast.CompoundStatement)
+	if !ok {
+		t.Fatalf("node is not ast.Statement. got=%T", node)
+	}
+
+	ifStmt, ok := cmpStmt.Statements[0].(*ast.IfStatement)
+	if !ok {
+		t.Fatalf("cmpStmt is not *ast.IfStatement. got=%T", ifStmt)
+	}
+
+	if ifStmt.Expression.String() != "(5 == (2 + 3))" {
+		t.Fatalf("got %s, want %s", ifStmt.Expression.String(), "(5 == (2 + 3))")
+	}
+
+	if ifStmt.TrueStatement.String() != "5" {
+		t.Fatalf("got %s, want %s", ifStmt.TrueStatement.String(), "5")
+	}
+}
