@@ -37,7 +37,9 @@ type ReturnStatement struct {
 
 func (rs *ReturnStatement) node()          {}
 func (rs *ReturnStatement) statementNode() {}
-func (rs *ReturnStatement) String() string { return rs.Expression.String() }
+func (rs *ReturnStatement) String() string {
+	return "return " + rs.Expression.String() + ";"
+}
 
 type IfStatement struct {
 	Expression     Expression

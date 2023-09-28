@@ -80,7 +80,7 @@ func TestReturnStatement(t *testing.T) {
 	tokens := lexer.Tokenize(input)
 	p := New(tokens)
 	actual := p.Parse().String()
-	expected := "123"
+	expected := "return 123;"
 	if actual != expected {
 		t.Fatalf("got %s, want %s", actual, expected)
 	}
@@ -110,7 +110,42 @@ func TestIfStatement(t *testing.T) {
 		t.Fatalf("got %s, want %s", ifStmt.Expression.String(), "(5 == (2 + 3))")
 	}
 
-	if ifStmt.TrueStatement.String() != "5" {
+	if ifStmt.TrueStatement.String() != "return 5;" {
 		t.Fatalf("got %s, want %s", ifStmt.TrueStatement.String(), "5")
+	}
+}
+
+func TestIfElseStatement(t *testing.T) {
+	input := `
+	if (1 > 2){
+		return 1;
+	} else {
+		return 2;
+	}
+	`
+	tokens := lexer.Tokenize(input)
+	p := New(tokens)
+	node := p.Parse()
+
+	cmpStmt, ok := node.(*ast.CompoundStatement)
+	if !ok {
+		t.Fatalf("node is not ast.Statement. got=%T", node)
+	}
+
+	ifStmt, ok := cmpStmt.Statements[0].(*ast.IfStatement)
+	if !ok {
+		t.Fatalf("cmpStmt is not *ast.IfStatement. got=%T", ifStmt)
+	}
+
+	if ifStmt.Expression.String() != "(1 > 2)" {
+		t.Fatalf("got %s, want %s", ifStmt.Expression.String(), "(1 > 2)")
+	}
+
+	if ifStmt.TrueStatement.String() != "return 1;" {
+		t.Fatalf("got %s, want %s", ifStmt.TrueStatement.String(), "1")
+	}
+
+	if ifStmt.FalseStatement.String() != "return 2;" {
+		t.Fatalf("got %s, want %s", ifStmt.FalseStatement.String(), "2")
 	}
 }

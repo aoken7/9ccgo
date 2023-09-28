@@ -194,6 +194,10 @@ func (p *Parser) selectionStatement(env *Env) ast.Statement {
 		p.consume(")")
 		selectionStmt.TrueStatement = p.stmt(env)
 
+		if p.consume(token.ELSE) {
+			selectionStmt.FalseStatement = p.stmt(env)
+		}
+
 		return selectionStmt
 	}
 

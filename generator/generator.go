@@ -114,6 +114,11 @@ func gen(node ast.Node) string {
 		out.WriteString("\tje " + label + "\n")
 		out.WriteString(gen(n.TrueStatement))
 		out.WriteString(label + ":\n")
+
+		if n.FalseStatement != nil {
+			out.WriteString(gen(n.FalseStatement))
+		}
+
 		return out.String()
 
 	case *ast.PrefixOperatorNode:

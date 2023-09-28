@@ -35,5 +35,6 @@ assert 8 '{ foo=3; bar=5; foo+bar; }'
 assert 3 'return 3; 5;'
 assert 3 'return 3; return 5;'
 assert 5 'if(1 + 2 > 0) { return 5; } return 3;'
+assert 3 'if(0) { return 5; } else { return 3; }'
 
 echo OK
