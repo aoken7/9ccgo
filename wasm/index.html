@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>C compiler</title>
+    <script src="https://cdn.jsdelivr.net/npm/go-wasm-exec-wasmer@1.0.5/wasm_exec.js"></script>
+</head>
+
+<body>
+    <h1>C compiler</h1>
+    <input type="text" id="inputField" placeholder="Enter text">
+    <button onclick="callGoFunction()">Call Go Function</button>
+
+    <p>Output:</p>
+    <pre id="output"></pre>
+
+
+    <script>
+        const go = new Go();
+
+        WebAssembly.instantiateStreaming(fetch('wasm_main.wasm'), go.importObject).then((result) => {
+            go.run(result.instance);
+        });
+
+        function callGoFunction() {
+            const input = inputField.value;
+            const result = compile(input); 
+            output.textContent  = result
+        }
+    </script>
+</body>
+
+</html>
