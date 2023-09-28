@@ -30,7 +30,7 @@ jobs:
           git push origin gh-pages --force
 
       - name: Copy WASM Files
-        run: cp ./wasm/* .
+        run: cp -R ./wasm/* ./
 
       - name: Commit and Push
         run: |
