@@ -31,11 +31,6 @@ jobs:
           git commit --allow-empty -m "Initial commit"
           git push origin gh-pages --force
 
-      - name: Copy WASM Files
-        run: |
-          cp ./wasm/* ./
-          rm -rf ./wasm
-
       - name: Commit and Push
         run: |
           git add .
