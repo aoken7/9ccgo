@@ -15,7 +15,7 @@ jobs:
 
       - name: Build WASM
         working-directory: ./wasm
-        run: go build -o wasm_main.wasm
+        run: GOARCH=wasm GOOS=js go build -o wasm_main.wasm wasm_main.go
 
       - name: Configure Git
         run: |
