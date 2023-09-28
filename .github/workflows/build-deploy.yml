@@ -19,8 +19,8 @@ jobs:
 
       - name: Configure Git
         run: |
-          git config --global user.email ""
-          git config --global user.name ""
+          git config --global user.email "build@example.com"
+          git config --global user.name "build"
 
       - name: Create and Checkout Deployment Branch
         run: |
