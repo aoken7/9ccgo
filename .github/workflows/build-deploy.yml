@@ -32,6 +32,6 @@ jobs:
 
       - name: Commit and Push
         run: |
-          git add wasm_main.wasm
+          git add .
           git commit -m "Update WASM files"
           git push origin gh-pages
