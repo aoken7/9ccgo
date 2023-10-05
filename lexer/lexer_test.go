@@ -18,6 +18,7 @@ func TestNextToken(t *testing.T) {
 	return 123;
 	if (2 + 3 == 5){ return 10; }
 	if (1 > 2) { return 3; } else { return 5;}
+	int a = 1 + 2;
 	`
 
 	tests := []struct {
@@ -108,6 +109,13 @@ func TestNextToken(t *testing.T) {
 		{token.INT, "5"},
 		{token.SEMICOLON, ";"},
 		{token.RBRACE, "}"},
+		{token.TYPE, "int"},
+		{token.IDENT, "a"},
+		{token.ASSIGN, "="},
+		{token.INT, "1"},
+		{token.PLUS, "+"},
+		{token.INT, "2"},
+		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
 	}
 

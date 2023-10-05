@@ -221,6 +221,25 @@ func (p *Parser) stmt(env *Env) ast.Statement {
 	return stmt
 }
 
+func (p *Parser) declarationSpecifier() string {
+	//<declaration-specifier> ::= <storage-class-specifier>
+	//                          | <type-specifier>
+	//                          | <type-qualifier>
+	p.nextToken()
+	return "int"
+}
+
+func (p *Parser) declaration() ast.Node {
+	// <declaration> ::=  {<declaration-specifier>}+ {<init-declarator>}* ;
+	ds := p.declarationSpecifier()
+	id := p.initDeclarator(ds)
+	return id
+}
+
+func (p *Parser) initDeclarator(identType string) ast.Node {
+	return nil
+}
+
 // TODO: 親の変数にアクセスする方法を考える
 func (p *Parser) compoundStatement() ast.Statement {
 	env := &Env{env: map[string]int{}}
@@ -229,7 +248,11 @@ func (p *Parser) compoundStatement() ast.Statement {
 	p.consume("{")
 
 	for !p.consume(token.RBRACE) && !p.expect(token.EOF) {
-		node.Statements = append(node.Statements, p.stmt(env))
+		if p.peek() == token.TYPE {
+			node.Statements = append(node.Statements, p.declaration())
+		} else {
+			node.Statements = append(node.Statements, p.stmt(env))
+		}
 	}
 
 	return node

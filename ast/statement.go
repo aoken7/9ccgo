@@ -8,7 +8,7 @@ import (
 // 関数のブロック部分に該当
 type CompoundStatement struct {
 	// <compound-statement> ::= { {<declaration>}* {<statement>}* }
-	Statements []Statement
+	Statements []Node
 }
 
 func (cs *CompoundStatement) node()          {}
