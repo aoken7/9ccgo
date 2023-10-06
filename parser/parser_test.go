@@ -152,14 +152,23 @@ func TestDeclaration(t *testing.T) {
 	input := `
 		int a = 1;
 		int b = 2;
-		int c = 3;
+		a + b;
 	`
 
 	tokens := lexer.Tokenize(input)
 	p := New(tokens)
-	actual := p.Parse().String()
-	expected := "int a = 1, int b = 2, int c = 3"
-	if actual != expected {
-		t.Fatalf("got %s, want %s", actual, expected)
+	actual := p.Parse()
+	compStmt := actual.(*ast.CompoundStatement)
+	decl := compStmt.Statements[0].(*ast.Declaration)
+	if decl.String() != "int a = 1" {
+		t.Fatalf("got %s, want %s", decl.String(), "int a = 1")
+	}
+	decl = compStmt.Statements[1].(*ast.Declaration)
+	if decl.String() != "int b = 2" {
+		t.Fatalf("got %s, want %s", decl.String(), "int b = 2")
+	}
+	exprStmt := compStmt.Statements[2].(*ast.ExpressionStatement)
+	if exprStmt.String() != "(a + b)" {
+		t.Fatalf("got %s, want %s", exprStmt.String(), "(a + b)")
 	}
 }

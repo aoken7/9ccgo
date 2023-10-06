@@ -238,8 +238,9 @@ func (p *Parser) identifier(env *Env) ast.IdentiferNode {
 		if !ok {
 			env.env[ident] = env.offset
 			offset = env.offset
-			env.offset += 8
+			//env.offset += 8
 		}
+		env.offset += 8
 
 		return ast.IdentiferNode{
 			Identifer: ident,

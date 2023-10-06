@@ -134,6 +134,7 @@ func gen(node ast.Node) string {
 		out.WriteString("\tpop rax\n")
 		out.WriteString("\tmov [rax], rdi\n")
 		out.WriteString("\tpush rdi\n")
+		out.WriteString("\tsub rsp, 8\n")
 		return out.String()
 	}
 
