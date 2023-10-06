@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"9ccgo/types"
 	"bytes"
 )
 
@@ -27,9 +28,9 @@ type Expression interface {
 }
 
 type Declaration struct {
-	Type  string
+	Type  types.Type
 	Ident IdentiferNode
-	right Node
+	Right Node
 }
 
 func (d *Declaration) node() {}
@@ -39,11 +40,10 @@ func (d *Declaration) String() string {
 	out.WriteString(string(d.Type) + " ")
 	out.WriteString(d.Ident.String() + " ")
 
-	if d.right != nil {
-		out.WriteString("=")
-		out.WriteString(d.right.String())
+	if d.Right != nil {
+		out.WriteString("= ")
+		out.WriteString(d.Right.String())
 	}
 
-	out.WriteString(";")
 	return out.String()
 }

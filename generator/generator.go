@@ -55,16 +55,6 @@ func calc(node ast.OperatorNode) string {
 		out.WriteString("\tcmp rdi, rax\n")
 		out.WriteString("\tsetle al\n")
 		out.WriteString("\tmovzb rax, al\n")
-	case token.ASSIGN:
-		n := node.(*ast.InfixOperatorNode)
-		left := n.Lhs.(*ast.IdentiferNode)
-		right := n.Rhs
-		out.WriteString(genLval(*left))
-		out.WriteString(gen(right))
-		out.WriteString("\tpop rdi\n")
-		out.WriteString("\tpop rax\n")
-		out.WriteString("\tmov [rax], rdi\n")
-		out.WriteString("\tpush rdi\n")
 	}
 
 	out.WriteString("\tpush rax\n")
@@ -135,6 +125,15 @@ func gen(node ast.Node) string {
 		out.WriteString("\tpop rax\n")
 		out.WriteString("\tmov rax, [rax]\n")
 		out.WriteString("\tpush rax\n")
+		return out.String()
+
+	case *ast.Declaration:
+		out.WriteString(genLval(n.Ident))
+		out.WriteString(gen(n.Right))
+		out.WriteString("\tpop rdi\n")
+		out.WriteString("\tpop rax\n")
+		out.WriteString("\tmov [rax], rdi\n")
+		out.WriteString("\tpush rdi\n")
 		return out.String()
 	}
 
