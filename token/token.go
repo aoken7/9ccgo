@@ -11,6 +11,8 @@ const (
 	EOF   = "EOF"
 	IDENT = "IDENT"
 
+	TYPE = "TYPE"
+
 	INT = "INT"
 
 	PLUS     = "+"
@@ -44,4 +46,5 @@ var Keywords = map[string]TokenType{
 	"return": RETURN,
 	"if":     IF,
 	"else":   ELSE,
+	"int":    TYPE,
 }

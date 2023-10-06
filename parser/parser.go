@@ -3,6 +3,7 @@ package parser
 import (
 	"9ccgo/ast"
 	"9ccgo/token"
+	"9ccgo/types"
 	"fmt"
 	"strconv"
 )
@@ -53,7 +54,7 @@ func (p *Parser) expect(t token.TokenType) bool {
 
 func (p *Parser) primary(env *Env) ast.Expression {
 	if p.consume(token.LPAREN) {
-		node := p.expr(env)
+		node := p.expression(env)
 		if !p.consume(token.RPAREN) {
 			panic(fmt.Sprintf("expected token is ')'. got %v", p.curToken))
 		}
@@ -65,23 +66,19 @@ func (p *Parser) primary(env *Env) ast.Expression {
 
 		offset, ok := env.env[ident]
 		if !ok {
-			env.env[ident] = env.offset
-			offset = env.offset
-			env.offset += 8
+			panic(fmt.Sprintf("undefined variable: %s", ident))
 		}
 
 		return &ast.IdentiferNode{
 			Identifer: ident,
 			Offset:    offset,
-			//Offset: int(ident[0] - 'a'),
 		}
 	}
 
 	// 多分Int
 	num, err := strconv.Atoi(p.curToken.Literal)
 	if err != nil {
-		fmt.Println(err)
-		return nil
+		panic(fmt.Sprintf("expected token is number. got %v", p.curToken))
 	}
 
 	p.nextToken()
@@ -159,19 +156,15 @@ func (p *Parser) equality(env *Env) ast.Expression {
 func (p *Parser) assign(env *Env) ast.Expression {
 	node := p.equality(env)
 
-	if p.consume(token.ASSIGN) {
-		node = newInfixNode(node, p.assign(env), "=")
-	}
-
 	return node
 }
 
-func (p *Parser) expr(env *Env) ast.Expression {
+func (p *Parser) expression(env *Env) ast.Expression {
 	return p.assign(env)
 }
 
 func (p *Parser) expressionStatement(env *Env) ast.Statement {
-	node := p.expr(env)
+	node := p.expression(env)
 
 	es := &ast.ExpressionStatement{}
 	es.Expression = node
@@ -180,7 +173,7 @@ func (p *Parser) expressionStatement(env *Env) ast.Statement {
 
 func (p *Parser) jumpStatement(env *Env) ast.Statement {
 	if p.consume(token.RETURN) {
-		exp := p.expr(env)
+		exp := p.expression(env)
 		return &ast.ReturnStatement{Expression: exp}
 	}
 	panic(fmt.Sprintf("parser err: expected return. but got=%T\n", p.peek()))
@@ -190,12 +183,12 @@ func (p *Parser) selectionStatement(env *Env) ast.Statement {
 	if p.consume(token.IF) {
 		selectionStmt := &ast.IfStatement{}
 		p.consume("(")
-		selectionStmt.Expression = p.expr(env)
+		selectionStmt.Expression = p.expression(env)
 		p.consume(")")
-		selectionStmt.TrueStatement = p.stmt(env)
+		selectionStmt.TrueStatement = p.stmtement(env)
 
 		if p.consume(token.ELSE) {
-			selectionStmt.FalseStatement = p.stmt(env)
+			selectionStmt.FalseStatement = p.stmtement(env)
 		}
 
 		return selectionStmt
@@ -204,7 +197,7 @@ func (p *Parser) selectionStatement(env *Env) ast.Statement {
 	return nil
 }
 
-func (p *Parser) stmt(env *Env) ast.Statement {
+func (p *Parser) stmtement(env *Env) ast.Statement {
 	var stmt ast.Statement
 	switch p.curToken.Type {
 	case token.RETURN:
@@ -221,6 +214,81 @@ func (p *Parser) stmt(env *Env) ast.Statement {
 	return stmt
 }
 
+func (p *Parser) declarationSpecifier() types.Type {
+	//<declaration-specifier> ::= <storage-class-specifier>
+	//                          | <type-specifier>
+	//                          | <type-qualifier>
+	if p.consume(token.TYPE) {
+		return types.Int
+	}
+	panic(fmt.Sprintf("expected token.TYPE. but got=%T", p.curToken))
+}
+
+func (p *Parser) declarator(env *Env) *ast.Declaration {
+	// <declarator> ::= {<pointer>}? <direct-declarator>
+	return p.directDeclarator(env)
+}
+
+func (p *Parser) identifier(env *Env) ast.IdentiferNode {
+	if p.expect(token.IDENT) {
+		ident := p.curToken.Literal
+		p.nextToken()
+
+		offset, ok := env.env[ident]
+		if !ok {
+			env.env[ident] = env.offset
+			offset = env.offset
+			//env.offset += 8
+		}
+		env.offset += 8
+
+		return ast.IdentiferNode{
+			Identifer: ident,
+			Offset:    offset,
+		}
+	} else {
+		panic(fmt.Sprintf("expected token.IDENT. but got=%T", p.curToken))
+	}
+}
+
+func (p *Parser) directDeclarator(env *Env) *ast.Declaration {
+	// <direct-declarator> ::= <identifier>
+	//                       | ( <declarator> )
+	//                       | <direct-declarator> [ {<constant-expression>}? ]
+	//                       | <direct-declarator> ( <parameter-type-list> )
+	//                       | <direct-declarator> ( {<identifier>}* )
+	return &ast.Declaration{Ident: p.identifier(env)}
+}
+
+func (p *Parser) declaration(env *Env) *ast.Declaration {
+	// <declaration> ::=  {<declaration-specifier>}+ {<init-declarator>}* ;
+	ds := p.declarationSpecifier()
+	id := p.initDeclarator(env, ds)
+	p.consume(token.SEMICOLON)
+	return id
+}
+
+func (p *Parser) initDeclarator(env *Env, typ types.Type) *ast.Declaration {
+	// <init-declarator> ::= <declarator>
+	//                 | <declarator> = <initializer>
+	dec := p.declarator(env)
+
+	p.consume(token.ASSIGN)
+
+	dec.Type = typ
+	dec.Right = p.initializer(env)
+
+	return dec
+}
+
+func (p *Parser) initializer(env *Env) ast.Node {
+	// <initializer> ::= <assignment-expression>
+	//				   | { <initializer-list> }
+	//                 | { <initializer-list> , }
+
+	return p.expression(env)
+}
+
 // TODO: 親の変数にアクセスする方法を考える
 func (p *Parser) compoundStatement() ast.Statement {
 	env := &Env{env: map[string]int{}}
@@ -229,7 +297,11 @@ func (p *Parser) compoundStatement() ast.Statement {
 	p.consume("{")
 
 	for !p.consume(token.RBRACE) && !p.expect(token.EOF) {
-		node.Statements = append(node.Statements, p.stmt(env))
+		if p.peek() == token.TYPE {
+			node.Statements = append(node.Statements, p.declaration(env))
+		} else {
+			node.Statements = append(node.Statements, p.stmtement(env))
+		}
 	}
 
 	return node

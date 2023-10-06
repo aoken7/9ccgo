@@ -21,8 +21,6 @@ func TestOperatorPrecedence(t *testing.T) {
 		{"-3 * 2 + -(1 / 2)", "(((-3) * 2) + (-(1 / 2)))"},
 		{"2 < 3 == 1 + 3 > 5", "((2 < 3) == ((1 + 3) > 5))"},
 		{"2 <= 3 != 1 + 3 >= 5", "((2 <= 3) != ((1 + 3) >= 5))"},
-		{"a = 1", "(a = 1)"},
-		{"foo + bar", "(foo + bar)"},
 	}
 
 	for _, tt := range tests {
@@ -58,15 +56,15 @@ func TestExpressionStatement(t *testing.T) {
 
 func TestCompoundStatement(t *testing.T) {
 	input := `
-		a = 1;
-		b = 2;
-		c = 3;
+		int a = 1;
+		int b = 2;
+		int c = 3;
 	`
 
 	tokens := lexer.Tokenize(input)
 	p := New(tokens)
 	actual := p.Parse().String()
-	expected := "(a = 1), (b = 2), (c = 3)"
+	expected := "int a = 1, int b = 2, int c = 3"
 	if actual != expected {
 		t.Fatalf("got %s, want %s", actual, expected)
 	}
@@ -147,5 +145,30 @@ func TestIfElseStatement(t *testing.T) {
 
 	if ifStmt.FalseStatement.String() != "return 2;" {
 		t.Fatalf("got %s, want %s", ifStmt.FalseStatement.String(), "2")
+	}
+}
+
+func TestDeclaration(t *testing.T) {
+	input := `
+		int a = 1;
+		int b = 2;
+		a + b;
+	`
+
+	tokens := lexer.Tokenize(input)
+	p := New(tokens)
+	actual := p.Parse()
+	compStmt := actual.(*ast.CompoundStatement)
+	decl := compStmt.Statements[0].(*ast.Declaration)
+	if decl.String() != "int a = 1" {
+		t.Fatalf("got %s, want %s", decl.String(), "int a = 1")
+	}
+	decl = compStmt.Statements[1].(*ast.Declaration)
+	if decl.String() != "int b = 2" {
+		t.Fatalf("got %s, want %s", decl.String(), "int b = 2")
+	}
+	exprStmt := compStmt.Statements[2].(*ast.ExpressionStatement)
+	if exprStmt.String() != "(a + b)" {
+		t.Fatalf("got %s, want %s", exprStmt.String(), "(a + b)")
 	}
 }
