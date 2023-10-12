@@ -153,14 +153,21 @@ func (p *Parser) equality(env *Env) ast.Expression {
 	}
 }
 
-func (p *Parser) assign(env *Env) ast.Expression {
+func (p *Parser) assignment_expression(env *Env) ast.Expression {
+	// <assignment-expression> ::= <conditional-expression>
+	//                           | <unary-expression> <assignment-operator> <assignment-expression>
 	node := p.equality(env)
-
+	if p.consume(token.ASSIGN) {
+		return &ast.AssignmentNode{
+			Ident: node,
+			Right: p.assignment_expression(env),
+		}
+	}
 	return node
 }
 
 func (p *Parser) expression(env *Env) ast.Expression {
-	return p.assign(env)
+	return p.assignment_expression(env)
 }
 
 func (p *Parser) expressionStatement(env *Env) ast.Statement {

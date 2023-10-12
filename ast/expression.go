@@ -65,3 +65,20 @@ type IdentiferNode struct {
 func (i *IdentiferNode) node()           {}
 func (i *IdentiferNode) expressionNode() {}
 func (i *IdentiferNode) String() string  { return i.Identifer }
+
+type AssignmentNode struct {
+	Ident Expression
+	Right Expression
+}
+
+func (i *AssignmentNode) node()           {}
+func (i *AssignmentNode) expressionNode() {}
+func (i *AssignmentNode) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(i.Ident.String())
+	out.WriteString(" = ")
+	out.WriteString(i.Right.String())
+
+	return out.String()
+}
