@@ -18,6 +18,7 @@ func TestNextToken(t *testing.T) {
 	return 123;
 	if (2 + 3 == 5){ return 10; }
 	if (1 > 2) { return 3; } else { return 5;}
+	int b;
 	int a = 1 + 2;
 	`
 
@@ -109,6 +110,9 @@ func TestNextToken(t *testing.T) {
 		{token.INT, "5"},
 		{token.SEMICOLON, ";"},
 		{token.RBRACE, "}"},
+		{token.TYPE, "int"},
+		{token.IDENT, "b"},
+		{token.SEMICOLON, ";"},
 		{token.TYPE, "int"},
 		{token.IDENT, "a"},
 		{token.ASSIGN, "="},

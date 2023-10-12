@@ -38,10 +38,10 @@ func (d *Declaration) String() string {
 	var out bytes.Buffer
 
 	out.WriteString(string(d.Type) + " ")
-	out.WriteString(d.Ident.String() + " ")
+	out.WriteString(d.Ident.String())
 
 	if d.Right != nil {
-		out.WriteString("= ")
+		out.WriteString(" = ")
 		out.WriteString(d.Right.String())
 	}
 
