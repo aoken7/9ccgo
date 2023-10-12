@@ -129,11 +129,13 @@ func gen(node ast.Node) string {
 
 	case *ast.Declaration:
 		out.WriteString(genLval(n.Ident))
-		out.WriteString(gen(n.Right))
-		out.WriteString("\tpop rdi\n")
-		out.WriteString("\tpop rax\n")
-		out.WriteString("\tmov [rax], rdi\n")
-		out.WriteString("\tpush rdi\n")
+		if n.Right != nil {
+			out.WriteString(gen(n.Right))
+			out.WriteString("\tpop rdi\n")
+			out.WriteString("\tpop rax\n")
+			out.WriteString("\tmov [rax], rdi\n")
+			out.WriteString("\tpush rdi\n")
+		}
 		out.WriteString("\tsub rsp, 8\n")
 		return out.String()
 	}

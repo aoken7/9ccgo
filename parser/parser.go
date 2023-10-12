@@ -272,11 +272,11 @@ func (p *Parser) initDeclarator(env *Env, typ types.Type) *ast.Declaration {
 	// <init-declarator> ::= <declarator>
 	//                 | <declarator> = <initializer>
 	dec := p.declarator(env)
-
-	p.consume(token.ASSIGN)
-
 	dec.Type = typ
-	dec.Right = p.initializer(env)
+
+	if p.consume(token.ASSIGN) {
+		dec.Right = p.initializer(env)
+	}
 
 	return dec
 }
