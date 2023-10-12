@@ -231,7 +231,7 @@ func (p *Parser) declarationSpecifier() types.Type {
 	panic(fmt.Sprintf("expected token.TYPE. but got=%T", p.curToken))
 }
 
-func (p *Parser) declarator(env *Env) *ast.Declaration {
+func (p *Parser) declarator(env *Env) ast.IdentiferNode {
 	// <declarator> ::= {<pointer>}? <direct-declarator>
 	return p.directDeclarator(env)
 }
@@ -258,37 +258,48 @@ func (p *Parser) identifier(env *Env) ast.IdentiferNode {
 	}
 }
 
-func (p *Parser) directDeclarator(env *Env) *ast.Declaration {
+func (p *Parser) directDeclarator(env *Env) ast.IdentiferNode {
 	// <direct-declarator> ::= <identifier>
 	//                       | ( <declarator> )
 	//                       | <direct-declarator> [ {<constant-expression>}? ]
 	//                       | <direct-declarator> ( <parameter-type-list> )
 	//                       | <direct-declarator> ( {<identifier>}* )
-	return &ast.Declaration{Ident: p.identifier(env)}
+	return p.identifier(env)
 }
 
 func (p *Parser) declaration(env *Env) *ast.Declaration {
 	// <declaration> ::=  {<declaration-specifier>}+ {<init-declarator>}* ;
-	ds := p.declarationSpecifier()
-	id := p.initDeclarator(env, ds)
-	p.consume(token.SEMICOLON)
-	return id
-}
-
-func (p *Parser) initDeclarator(env *Env, typ types.Type) *ast.Declaration {
-	// <init-declarator> ::= <declarator>
-	//                 | <declarator> = <initializer>
-	dec := p.declarator(env)
-	dec.Type = typ
-
-	if p.consume(token.ASSIGN) {
-		dec.Right = p.initializer(env)
+	declaration := &ast.Declaration{
+		Type: p.declarationSpecifier(),
 	}
 
-	return dec
+	for p.peek() == token.IDENT {
+		declaration.InitDeclarators =
+			append(declaration.InitDeclarators, *p.initDeclarator(env))
+		p.consume(",")
+	}
+
+	p.consume(token.SEMICOLON)
+
+	return declaration
 }
 
-func (p *Parser) initializer(env *Env) ast.Node {
+func (p *Parser) initDeclarator(env *Env) *ast.InitDeclarator {
+	// <init-declarator> ::= <declarator>
+	//                 | <declarator> = <initializer>
+
+	initDec := &ast.InitDeclarator{
+		Ident: p.declarator(env),
+	}
+
+	if p.consume(token.ASSIGN) {
+		initDec.Right = p.initializer(env)
+	}
+
+	return initDec
+}
+
+func (p *Parser) initializer(env *Env) ast.Expression {
 	// <initializer> ::= <assignment-expression>
 	//				   | { <initializer-list> }
 	//                 | { <initializer-list> , }

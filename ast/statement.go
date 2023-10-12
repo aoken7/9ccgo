@@ -20,7 +20,7 @@ func (cs *CompoundStatement) String() string {
 		outs = append(outs, stmt.String())
 	}
 
-	return strings.Join(outs, ", ")
+	return strings.Join(outs, " ")
 }
 
 type ExpressionStatement struct {

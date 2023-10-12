@@ -30,6 +30,7 @@ const (
 	GEQ = ">="
 
 	SEMICOLON = ";"
+	COMMA     = ","
 
 	LPAREN = "("
 	LBRACE = "{"

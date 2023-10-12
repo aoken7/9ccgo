@@ -20,6 +20,7 @@ func TestNextToken(t *testing.T) {
 	if (1 > 2) { return 3; } else { return 5;}
 	int b;
 	int a = 1 + 2;
+	int a, b, c = 4;
 	`
 
 	tests := []struct {
@@ -119,6 +120,15 @@ func TestNextToken(t *testing.T) {
 		{token.INT, "1"},
 		{token.PLUS, "+"},
 		{token.INT, "2"},
+		{token.SEMICOLON, ";"},
+		{token.TYPE, "int"},
+		{token.IDENT, "a"},
+		{token.COMMA, ","},
+		{token.IDENT, "b"},
+		{token.COMMA, ","},
+		{token.IDENT, "c"},
+		{token.ASSIGN, "="},
+		{token.INT, "4"},
 		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
 	}
