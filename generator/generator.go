@@ -128,15 +128,17 @@ func gen(node ast.Node) string {
 		return out.String()
 
 	case *ast.Declaration:
-		out.WriteString(genLval(n.Ident))
-		if n.Right != nil {
-			out.WriteString(gen(n.Right))
-			out.WriteString("\tpop rdi\n")
-			out.WriteString("\tpop rax\n")
-			out.WriteString("\tmov [rax], rdi\n")
-			out.WriteString("\tpush rdi\n")
+		for _, d := range n.InitDeclarators {
+			out.WriteString(genLval(d.Ident))
+			if d.Right != nil {
+				out.WriteString(gen(d.Right))
+				out.WriteString("\tpop rdi\n")
+				out.WriteString("\tpop rax\n")
+				out.WriteString("\tmov [rax], rdi\n")
+				out.WriteString("\tpush rdi\n")
+			}
+			out.WriteString("\tsub rsp, 8\n")
 		}
-		out.WriteString("\tsub rsp, 8\n")
 		return out.String()
 
 	case *ast.AssignmentNode:

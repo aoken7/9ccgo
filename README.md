@@ -1,5 +1,8 @@
 # 9ccgo
 
+## デモ
+[https://aoken7.github.io/9ccgo/](https://aoken7.github.io/9ccgo/)
+
 ## 使い方
 ```
 go run main.go "if (1 + 2 == 3){ return 0; }"
@@ -9,6 +12,7 @@ go run main.go "if (1 + 2 == 3){ return 0; }"
 - [x] if文
 - [x] return文
 - [x] 複合文
+- [x] 変数
 
 ## 参考
 - [https://www.sigbus.info/compilerbook](https://www.sigbus.info/compilerbook)

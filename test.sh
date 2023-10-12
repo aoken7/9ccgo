@@ -38,5 +38,6 @@ assert 5 'if(1 + 2 > 0) { return 5; } return 3;'
 assert 3 'if(0) { return 5; } else { return 3; }'
 assert 1 'int a; 1;'
 assert 3 'int a; a = 3; a;'
+assert 5 'int a, b = 5, c; b;'
 
 echo OK
