@@ -96,7 +96,6 @@ func (p *Parser) primary(env *Env) ast.Expression {
 	// 多分Int
 	num, err := strconv.Atoi(p.curToken.Literal)
 	if err != nil {
-		fmt.Println(p.curToken.Literal)
 		panic(fmt.Sprintf("expected token is number. got %v", p.curToken))
 	}
 
@@ -247,7 +246,6 @@ func (p *Parser) declarationSpecifier() types.Type {
 	if p.consume(token.TYPE) {
 		return types.Int
 	}
-	fmt.Println(p.curToken)
 	panic(fmt.Sprintf("expected token.TYPE. but got=%T", p.curToken.Type))
 }
 
@@ -335,11 +333,11 @@ func (p *Parser) compoundStatement(env Env) *ast.CompoundStatement {
 
 	p.consume("{")
 
+	// 代入を担うのはdeclaration
 	for !p.consume(token.RBRACE) && !p.expect(token.EOF) {
 		if p.curToken.Type == token.TYPE {
 			node.Statements = append(node.Statements, p.declaration(&env))
-		}
-		if p.consume(token.ASSIGN) {
+		} else {
 			node.Statements = append(node.Statements, p.stmtement(&env))
 		}
 	}

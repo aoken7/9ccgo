@@ -194,9 +194,9 @@ func TestFunction(t *testing.T) {
 	if len(fn.CmpStmt.Statements) != 2 {
 		t.Fatalf("CmpStmt is missmatch. got=%d, want=%d", len(fn.CmpStmt.Statements), 2)
 	}
-	assign := fn.CmpStmt.Statements[0].(*ast.ExpressionStatement)
-	if assign.String() != "int c = (a + b);" {
-		t.Fatalf("got %s, want %s", assign.String(), "int c = (a + b);")
+	decl := fn.CmpStmt.Statements[0].(*ast.Declaration)
+	if decl.String() != "int c = (a + b);" {
+		t.Fatalf("got %s, want %s", decl.String(), "int c = (a + b);")
 	}
 	ret := fn.CmpStmt.Statements[1].(*ast.ReturnStatement)
 	if ret.String() != "return c;" {
