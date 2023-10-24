@@ -68,3 +68,29 @@ func (d *InitDeclarator) String() string {
 
 	return out.String()
 }
+
+type FunctionNode struct {
+	Type         types.Type
+	Ident        IdentiferNode
+	Declarations []Declaration
+	CmpStmt      CompoundStatement
+}
+
+func (f *FunctionNode) node() {}
+func (f *FunctionNode) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(string(f.Type) + " ")
+	out.WriteString(f.Ident.String())
+	out.WriteString("(")
+	var decs []string
+	for _, dec := range f.Declarations {
+		decs = append(decs, dec.String())
+	}
+	out.WriteString(")")
+	out.WriteString("{")
+	out.WriteString(f.CmpStmt.String())
+	out.WriteString("}")
+
+	return out.String()
+}

@@ -3,6 +3,7 @@ package parser
 import (
 	"9ccgo/ast"
 	"9ccgo/lexer"
+	"9ccgo/types"
 	"testing"
 )
 
@@ -26,7 +27,7 @@ func TestOperatorPrecedence(t *testing.T) {
 	for _, tt := range tests {
 		tokens := lexer.Tokenize(tt.input)
 		p := New(tokens)
-		actual := p.Parse().String()
+		actual := p.compoundStatement(Env{}).String()
 		if actual != tt.expected {
 			t.Fatalf("got %s, want %s", actual, tt.expected)
 		}
@@ -45,8 +46,7 @@ func TestExpressionStatement(t *testing.T) {
 	for _, tt := range tests {
 		tokens := lexer.Tokenize(tt.input)
 		p := New(tokens)
-		actual := p.Parse()
-		compStmt := actual.(*ast.CompoundStatement)
+		compStmt := p.compoundStatement(Env{})
 		exprStmt := compStmt.Statements[0].(*ast.ExpressionStatement)
 		if exprStmt.String() != tt.expected {
 			t.Fatalf("got %s, want %s", exprStmt.String(), tt.expected)
@@ -63,7 +63,7 @@ func TestCompoundStatement(t *testing.T) {
 
 	tokens := lexer.Tokenize(input)
 	p := New(tokens)
-	actual := p.Parse().String()
+	actual := p.compoundStatement(Env{env: map[string]int{}}).String()
 	expected := "int a = 1; int b = 2; int c = 3;"
 	if actual != expected {
 		t.Fatalf("got %s, want %s", actual, expected)
@@ -77,7 +77,7 @@ func TestReturnStatement(t *testing.T) {
 
 	tokens := lexer.Tokenize(input)
 	p := New(tokens)
-	actual := p.Parse().String()
+	actual := p.compoundStatement(Env{}).String()
 	expected := "return 123;"
 	if actual != expected {
 		t.Fatalf("got %s, want %s", actual, expected)
@@ -92,12 +92,8 @@ func TestIfStatement(t *testing.T) {
 	`
 	tokens := lexer.Tokenize(input)
 	p := New(tokens)
-	node := p.Parse()
 
-	cmpStmt, ok := node.(*ast.CompoundStatement)
-	if !ok {
-		t.Fatalf("node is not ast.Statement. got=%T", node)
-	}
+	cmpStmt := p.compoundStatement(Env{})
 
 	ifStmt, ok := cmpStmt.Statements[0].(*ast.IfStatement)
 	if !ok {
@@ -123,12 +119,8 @@ func TestIfElseStatement(t *testing.T) {
 	`
 	tokens := lexer.Tokenize(input)
 	p := New(tokens)
-	node := p.Parse()
 
-	cmpStmt, ok := node.(*ast.CompoundStatement)
-	if !ok {
-		t.Fatalf("node is not ast.Statement. got=%T", node)
-	}
+	cmpStmt := p.compoundStatement(Env{})
 
 	ifStmt, ok := cmpStmt.Statements[0].(*ast.IfStatement)
 	if !ok {
@@ -150,8 +142,8 @@ func TestIfElseStatement(t *testing.T) {
 
 func TestDeclaration(t *testing.T) {
 	input := `
-		int a = 1;
-		int b = 2;
+		int a;
+		int b;
 		a + b;
 		int c;
 		1;
@@ -159,15 +151,14 @@ func TestDeclaration(t *testing.T) {
 
 	tokens := lexer.Tokenize(input)
 	p := New(tokens)
-	actual := p.Parse()
-	compStmt := actual.(*ast.CompoundStatement)
+	compStmt := p.compoundStatement(Env{env: map[string]int{}})
 	decl := compStmt.Statements[0].(*ast.Declaration)
-	if decl.String() != "int a = 1;" {
-		t.Fatalf("got %s, want %s", decl.String(), "int a = 1;")
+	if decl.String() != "int a;" {
+		t.Fatalf("got %s, want %s", decl.String(), "int a;")
 	}
 	decl = compStmt.Statements[1].(*ast.Declaration)
-	if decl.String() != "int b = 2;" {
-		t.Fatalf("got %s, want %s", decl.String(), "int b = 2;")
+	if decl.String() != "int b;" {
+		t.Fatalf("got %s, want %s", decl.String(), "int b;")
 	}
 	exprStmt := compStmt.Statements[2].(*ast.ExpressionStatement)
 	if exprStmt.String() != "(a + b)" {
@@ -177,4 +168,39 @@ func TestDeclaration(t *testing.T) {
 	if decl.String() != "int c;" {
 		t.Fatalf("got %s, want %s", decl.String(), "int c;")
 	}
+}
+
+func TestFunction(t *testing.T) {
+	input := `
+	int hoge(int a, int b){
+		int c = a + b;
+		return c;
+	}
+	`
+
+	tokens := lexer.Tokenize(input)
+	p := New(tokens)
+	actual := p.Parse()
+	fn := actual.(*ast.FunctionNode)
+	if fn.Type != types.Int {
+		t.Fatalf("declaration-specifier error. got=%s, want=%s", fn.Type, types.Int)
+	}
+	if fn.Ident.Identifer != "hoge" {
+		t.Fatalf("Identifer is missmatch. got=%s, want=%s", fn.Ident.Identifer, "hoge")
+	}
+	if len(fn.Declarations) != 2 {
+		t.Fatalf("Declarations is missmatch. got=%d, want=%d", len(fn.Declarations), 2)
+	}
+	if len(fn.CmpStmt.Statements) != 2 {
+		t.Fatalf("CmpStmt is missmatch. got=%d, want=%d", len(fn.CmpStmt.Statements), 2)
+	}
+	assign := fn.CmpStmt.Statements[0].(*ast.ExpressionStatement)
+	if assign.String() != "int c = (a + b);" {
+		t.Fatalf("got %s, want %s", assign.String(), "int c = (a + b);")
+	}
+	ret := fn.CmpStmt.Statements[1].(*ast.ReturnStatement)
+	if ret.String() != "return c;" {
+		t.Fatalf("got %s, want %s", ret.String(), "return c;")
+	}
+
 }
