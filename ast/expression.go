@@ -82,3 +82,17 @@ func (i *AssignmentNode) String() string {
 
 	return out.String()
 }
+
+type FunctionCallNode struct {
+	Idetifer IdentiferNode
+}
+
+func (f *FunctionCallNode) node()           {}
+func (f *FunctionCallNode) expressionNode() {}
+func (f *FunctionCallNode) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(f.Idetifer.Identifer)
+
+	return out.String()
+}

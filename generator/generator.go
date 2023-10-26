@@ -76,6 +76,12 @@ func gen(node ast.Node) string {
 	var out bytes.Buffer
 
 	switch n := node.(type) {
+	case *ast.RootNode:
+		for _, unit := range n.Units {
+			out.WriteString(gen(unit))
+		}
+		return out.String()
+
 	case *ast.FunctionNode:
 		out.WriteString(n.Ident.Identifer + ":\n")
 		out.WriteString("\tpush rbp\n")
@@ -86,6 +92,7 @@ func gen(node ast.Node) string {
 		out.WriteString("\tmov rsp, rbp\n")
 		out.WriteString("\tpop rbp\n")
 		out.WriteString("\tret\n")
+		out.WriteString("\n")
 		return out.String()
 
 	case *ast.CompoundStatement:
@@ -97,6 +104,11 @@ func gen(node ast.Node) string {
 
 	case *ast.ExpressionStatement:
 		return gen(n.Expression)
+
+	case *ast.FunctionCallNode:
+		out.WriteString(fmt.Sprintf("\tcall %s\n", n.Idetifer.Identifer))
+		out.WriteString("\tpush rax\n")
+		return out.String()
 
 	case *ast.ReturnStatement:
 		out.WriteString(gen(n.Expression))
