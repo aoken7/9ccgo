@@ -14,7 +14,15 @@ func main() {
 		return
 	}
 
-	tokens := lexer.Tokenize(os.Args[1])
+	fileNmme := os.Args[1]
+
+	source, err := os.ReadFile(fileNmme)
+	if err != nil {
+		fmt.Printf("Error reading the file: %v\n", err)
+		return
+	}
+
+	tokens := lexer.Tokenize(string(source))
 	parser := parser.New(tokens)
 	ast := parser.Parse()
 
