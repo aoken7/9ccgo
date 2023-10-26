@@ -66,7 +66,7 @@ func genLval(node ast.IdentiferNode) string {
 	var out bytes.Buffer
 
 	out.WriteString("\tmov rax, rbp\n")
-	out.WriteString(fmt.Sprintf("\tsub rax, %d\n", node.Offset))
+	out.WriteString(fmt.Sprintf("\tadd rax, %d\n", node.Offset+8))
 	out.WriteString("\tpush rax\n")
 
 	return out.String()
@@ -106,6 +106,9 @@ func gen(node ast.Node) string {
 		return gen(n.Expression)
 
 	case *ast.FunctionCallNode:
+		for _, arg := range n.Args {
+			out.WriteString(gen(arg))
+		}
 		out.WriteString(fmt.Sprintf("\tcall %s\n", n.Idetifer.Identifer))
 		out.WriteString("\tpush rax\n")
 		return out.String()

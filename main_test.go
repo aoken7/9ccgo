@@ -16,6 +16,7 @@ func TestMain(t *testing.T) {
 		{"test001.c", 123},
 		{"test002.c", 3},
 		{"test003.c", 10},
+		{"test004.c", 3},
 	}
 
 	for _, tc := range testCases {

@@ -103,7 +103,13 @@ func (p *Parser) postfixExpression(env *Env) ast.Expression {
 		if !ok {
 			fmt.Printf("expected *ast.IdentiferNode. got %v", ident)
 		}
+
 		funcCall := &ast.FunctionCallNode{Idetifer: *ident}
+
+		for !p.expect(")") {
+			funcCall.Args = append(funcCall.Args, p.assignment_expression(env))
+			p.consume(",")
+		}
 
 		p.consume(")")
 
