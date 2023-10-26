@@ -13,9 +13,10 @@ func TestMain(t *testing.T) {
 		sourceFile       string
 		expectedExitCode int
 	}{
-		{"test1.c", 123},
-		{"test2.c", 3},
-		// 追加のテストケースをここに追加
+		{"test001.c", 123},
+		{"test002.c", 3},
+		{"test003.c", 10},
+		{"test004.c", 3},
 	}
 
 	for _, tc := range testCases {

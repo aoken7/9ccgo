@@ -87,10 +87,25 @@ func (f *FunctionNode) String() string {
 	for _, dec := range f.Declarations {
 		decs = append(decs, dec.String())
 	}
+	out.WriteString(strings.Join(decs, ", "))
 	out.WriteString(")")
 	out.WriteString("{")
 	out.WriteString(f.CmpStmt.String())
 	out.WriteString("}")
 
 	return out.String()
+}
+
+type RootNode struct {
+	Units []Node
+}
+
+func (r *RootNode) node() {}
+func (r *RootNode) String() string {
+	var outs []string
+	for _, unit := range r.Units {
+		outs = append(outs, unit.String())
+	}
+
+	return strings.Join(outs, "\n")
 }

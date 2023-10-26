@@ -4,6 +4,7 @@ import (
 	"9ccgo/token"
 	"bytes"
 	"strconv"
+	"strings"
 )
 
 type OperatorNode interface {
@@ -79,6 +80,29 @@ func (i *AssignmentNode) String() string {
 	out.WriteString(i.Ident.String())
 	out.WriteString(" = ")
 	out.WriteString(i.Right.String())
+
+	return out.String()
+}
+
+type FunctionCallNode struct {
+	Idetifer IdentiferNode
+	Args     []Expression
+}
+
+func (f *FunctionCallNode) node()           {}
+func (f *FunctionCallNode) expressionNode() {}
+func (f *FunctionCallNode) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(f.Idetifer.Identifer)
+	out.WriteString("(")
+
+	var exps []string
+	for _, exp := range f.Args {
+		exps = append(exps, exp.String())
+	}
+	out.WriteString(strings.Join(exps, ", "))
+	out.WriteString(")")
 
 	return out.String()
 }

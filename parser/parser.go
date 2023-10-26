@@ -52,22 +52,71 @@ func (p *Parser) expect(t token.TokenType) bool {
 	return p.curToken.Type == t
 }
 
-func (p *Parser) functionDefinition() ast.Node {
+func (p *Parser) translationUnit() ast.Node {
+	// <translation-unit> ::= {<external-declaration>}*
+	env := &Env{env: map[string]int{}}
+
+	rootNode := &ast.RootNode{}
+	for !p.expect(token.EOF) {
+		rootNode.Units = append(rootNode.Units, p.externalDeclaration(*env))
+	}
+	return rootNode
+}
+
+func (p *Parser) externalDeclaration(env Env) ast.Node {
+	// <external-declaration> ::= <function-definition>
+	//                         | <declaration>
+
+	return p.functionDefinition(env)
+}
+
+func (p *Parser) functionDefinition(env Env) ast.Node {
 	// <function-definition> ::= {<declaration-specifier>}* <declarator> {<declaration>}* <compound-statement>
 	// TODO: グローバル変数に対応
-	env := &Env{env: map[string]int{}}
+
 	function := &ast.FunctionNode{}
 	function.Type = p.declarationSpecifier()
-	function.Ident = p.declarator(env)
+	function.Ident = p.declarator(&env)
 	p.consume("(")
 	for p.curToken.Type != token.RPAREN {
-		function.Declarations = append(function.Declarations, *p.declaration(env))
+		function.Declarations = append(function.Declarations, *p.declaration(&env))
 	}
 	p.consume(")")
 	p.consume("{")
-	function.CmpStmt = *p.compoundStatement(*env)
+	function.CmpStmt = *p.compoundStatement(env)
 	p.consume("}")
 	return function
+}
+
+func (p *Parser) postfixExpression(env *Env) ast.Expression {
+	//<postfix-expression> ::= <primary-expression>
+	//                   | <postfix-expression> [ <expression> ]
+	//                   | <postfix-expression> ( {<assignment-expression>}* )
+	//                   | <postfix-expression> . <identifier>
+	//                   | <postfix-expression> -> <identifier>
+	//                   | <postfix-expression> ++
+	//                   | <postfix-expression> --
+
+	exp := p.primary(env)
+	if p.consume("(") {
+		ident, ok := exp.(*ast.IdentiferNode)
+		if !ok {
+			fmt.Printf("expected *ast.IdentiferNode. got %v", ident)
+		}
+
+		funcCall := &ast.FunctionCallNode{Idetifer: *ident}
+
+		for !p.expect(")") {
+			funcCall.Args = append(funcCall.Args, p.assignment_expression(env))
+			p.consume(",")
+		}
+
+		p.consume(")")
+
+		return funcCall
+	}
+
+	return exp
 }
 
 func (p *Parser) primary(env *Env) ast.Expression {
@@ -108,7 +157,7 @@ func (p *Parser) unary(env *Env) ast.Expression {
 		return &ast.PrefixOperatorNode{Operator: "-", Rhs: p.primary(env)}
 	}
 
-	return p.primary(env)
+	return p.postfixExpression(env)
 }
 
 func (p *Parser) multiple(env *Env) ast.Expression {
@@ -348,7 +397,7 @@ func (p *Parser) compoundStatement(env Env) *ast.CompoundStatement {
 }
 
 func (p *Parser) Parse() ast.Node {
-	return p.functionDefinition()
+	return p.translationUnit()
 }
 
 func newInfixNode(l, r ast.Expression, oper token.TokenType) ast.Expression {
