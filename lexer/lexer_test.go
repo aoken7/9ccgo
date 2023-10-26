@@ -21,6 +21,10 @@ func TestNextToken(t *testing.T) {
 	int b;
 	int a = 1 + 2;
 	int a, b, c = 4;
+	int hoge(int a, int b){
+		int c = a + b;
+		return c;
+	}
 	`
 
 	tests := []struct {
@@ -130,6 +134,27 @@ func TestNextToken(t *testing.T) {
 		{token.ASSIGN, "="},
 		{token.INT, "4"},
 		{token.SEMICOLON, ";"},
+		{token.TYPE, "int"},
+		{token.IDENT, "hoge"},
+		{token.LPAREN, "("},
+		{token.TYPE, "int"},
+		{token.IDENT, "a"},
+		{token.COMMA, ","},
+		{token.TYPE, "int"},
+		{token.IDENT, "b"},
+		{token.RPAREN, ")"},
+		{token.LBRACE, "{"},
+		{token.TYPE, "int"},
+		{token.IDENT, "c"},
+		{token.ASSIGN, "="},
+		{token.IDENT, "a"},
+		{token.PLUS, "+"},
+		{token.IDENT, "b"},
+		{token.SEMICOLON, ";"},
+		{token.RETURN, "return"},
+		{token.IDENT, "c"},
+		{token.SEMICOLON, ";"},
+		{token.RBRACE, "}"},
 		{token.EOF, ""},
 	}
 

@@ -52,6 +52,24 @@ func (p *Parser) expect(t token.TokenType) bool {
 	return p.curToken.Type == t
 }
 
+func (p *Parser) functionDefinition() ast.Node {
+	// <function-definition> ::= {<declaration-specifier>}* <declarator> {<declaration>}* <compound-statement>
+	// TODO: グローバル変数に対応
+	env := &Env{env: map[string]int{}}
+	function := &ast.FunctionNode{}
+	function.Type = p.declarationSpecifier()
+	function.Ident = p.declarator(env)
+	p.consume("(")
+	for p.curToken.Type != token.RPAREN {
+		function.Declarations = append(function.Declarations, *p.declaration(env))
+	}
+	p.consume(")")
+	p.consume("{")
+	function.CmpStmt = *p.compoundStatement(*env)
+	p.consume("}")
+	return function
+}
+
 func (p *Parser) primary(env *Env) ast.Expression {
 	if p.consume(token.LPAREN) {
 		node := p.expression(env)
@@ -212,7 +230,7 @@ func (p *Parser) stmtement(env *Env) ast.Statement {
 	case token.IF:
 		stmt = p.selectionStatement(env)
 	case token.LBRACE:
-		stmt = p.compoundStatement()
+		stmt = p.compoundStatement(*env)
 	default:
 		stmt = p.expressionStatement(env)
 	}
@@ -228,7 +246,7 @@ func (p *Parser) declarationSpecifier() types.Type {
 	if p.consume(token.TYPE) {
 		return types.Int
 	}
-	panic(fmt.Sprintf("expected token.TYPE. but got=%T", p.curToken))
+	panic(fmt.Sprintf("expected token.TYPE. but got=%T", p.curToken.Type))
 }
 
 func (p *Parser) declarator(env *Env) ast.IdentiferNode {
@@ -308,25 +326,29 @@ func (p *Parser) initializer(env *Env) ast.Expression {
 }
 
 // TODO: 親の変数にアクセスする方法を考える
-func (p *Parser) compoundStatement() ast.Statement {
-	env := &Env{env: map[string]int{}}
+func (p *Parser) compoundStatement(env Env) *ast.CompoundStatement {
+	// <compound-statement> ::= { {<declaration>}* {<statement>}* }
+	//env := &Env{env: map[string]int{}}
 	node := &ast.CompoundStatement{}
 
 	p.consume("{")
 
+	// 代入を担うのはdeclaration
 	for !p.consume(token.RBRACE) && !p.expect(token.EOF) {
-		if p.peek() == token.TYPE {
-			node.Statements = append(node.Statements, p.declaration(env))
+		if p.curToken.Type == token.TYPE {
+			node.Statements = append(node.Statements, p.declaration(&env))
 		} else {
-			node.Statements = append(node.Statements, p.stmtement(env))
+			node.Statements = append(node.Statements, p.stmtement(&env))
 		}
 	}
+
+	p.consume("}")
 
 	return node
 }
 
 func (p *Parser) Parse() ast.Node {
-	return p.compoundStatement()
+	return p.functionDefinition()
 }
 
 func newInfixNode(l, r ast.Expression, oper token.TokenType) ast.Expression {

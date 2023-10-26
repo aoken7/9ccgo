@@ -30,7 +30,7 @@ func calc(node ast.OperatorNode) string {
 		out.WriteString("\timul rax, rdi\n")
 	case token.SLASH:
 		out.WriteString("\tcqo\n")
-		out.WriteString("\tidiv, rdi\n")
+		out.WriteString("\tidiv rdi\n")
 	case token.EQL:
 		out.WriteString("\tcmp rax, rdi\n")
 		out.WriteString("\tsete al\n")
@@ -76,6 +76,18 @@ func gen(node ast.Node) string {
 	var out bytes.Buffer
 
 	switch n := node.(type) {
+	case *ast.FunctionNode:
+		out.WriteString(n.Ident.Identifer + ":\n")
+		out.WriteString("\tpush rbp\n")
+		out.WriteString("\tmov rbp, rsp\n")
+
+		out.WriteString(gen(&n.CmpStmt))
+
+		out.WriteString("\tmov rsp, rbp\n")
+		out.WriteString("\tpop rbp\n")
+		out.WriteString("\tret\n")
+		return out.String()
+
 	case *ast.CompoundStatement:
 		for _, stmt := range n.Statements {
 			out.WriteString(gen(stmt))
@@ -174,16 +186,8 @@ func Compile(node ast.Node) string {
 
 	out.WriteString(".intel_syntax noprefix\n")
 	out.WriteString(".global main\n")
-	out.WriteString("main:\n")
-
-	out.WriteString("\tpush rbp\n")
-	out.WriteString("\tmov rbp, rsp\n")
 
 	out.WriteString(gen(node))
-
-	out.WriteString("\tmov rsp, rbp\n")
-	out.WriteString("\tpop rbp\n")
-	out.WriteString("\tret\n")
 
 	return out.String()
 }
