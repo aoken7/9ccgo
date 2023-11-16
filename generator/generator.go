@@ -106,6 +106,11 @@ func gen(node ast.Node) string {
 		return gen(n.Expression)
 
 	case *ast.FunctionCallNode:
+		if src, ok := builtinFunc[n.Idetifer.Identifer]; ok {
+			out.WriteString(src)
+			return out.String()
+		}
+
 		for _, arg := range n.Args {
 			out.WriteString(gen(arg))
 		}

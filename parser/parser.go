@@ -133,7 +133,7 @@ func (p *Parser) primary(env *Env) ast.Expression {
 
 		offset, ok := env.env[ident]
 		if !ok {
-			panic(fmt.Sprintf("undefined variable: %s", ident))
+			//panic(fmt.Sprintf("undefined variable: %s", ident))
 		}
 
 		return &ast.IdentiferNode{
