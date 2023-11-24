@@ -10,6 +10,8 @@ import (
 
 var jumpLabel = -1
 
+var header map[string]string
+
 func getJumpLabel() string {
 	jumpLabel++
 	return ".Lend" + strconv.Itoa(jumpLabel)
@@ -89,6 +91,10 @@ func gen(node ast.Node) string {
 
 		out.WriteString(gen(&n.CmpStmt))
 
+		if n.Ident.Identifer == "main" {
+			return out.String()
+		}
+
 		out.WriteString("\tmov rsp, rbp\n")
 		out.WriteString("\tpop rbp\n")
 		out.WriteString("\tret\n")
@@ -98,6 +104,9 @@ func gen(node ast.Node) string {
 	case *ast.CompoundStatement:
 		for _, stmt := range n.Statements {
 			out.WriteString(gen(stmt))
+			if _, ok := stmt.(*ast.ReturnStatement); ok {
+				return out.String()
+			}
 			out.WriteString("\tpop rax\n")
 		}
 		return out.String()
@@ -106,10 +115,9 @@ func gen(node ast.Node) string {
 		return gen(n.Expression)
 
 	case *ast.FunctionCallNode:
-		/* 	if src, ok := builtinFunc[n.Idetifer.Identifer]; ok {
-			out.WriteString(src)
-			return out.String()
-		} */
+		if src, ok := builtinFunc[n.Idetifer.Identifer]; ok {
+			header[n.Idetifer.Identifer] = src
+		}
 
 		for _, arg := range n.Args {
 			out.WriteString(gen(arg))
@@ -203,30 +211,17 @@ func gen(node ast.Node) string {
 func Compile(node ast.Node) string {
 
 	var out bytes.Buffer
+	header = map[string]string{}
 
 	out.WriteString(".intel_syntax noprefix\n")
 	out.WriteString(".global main\n")
 
-	out.WriteString("\n")
-	out.WriteString("put:\n")
+	body := gen(node)
 
-	out.WriteString("\tpush rbp\n")
-	out.WriteString("\tmov rbp, rsp\n")
-
-	out.WriteString("\tmov rax, 1\n")
-	out.WriteString("\tmov rdi, [rbp+16]\n")
-	out.WriteString("\tmov [rbp+16], rdi\n")
-	out.WriteString("\tmov rdi, 1\n")
-	out.WriteString("\tlea rsi, [rbp+16]\n")
-	out.WriteString("\tmov rdx, 1\n")
-	out.WriteString("\tsyscall\n")
-
-	out.WriteString("\tmov rsp, rbp\n")
-	out.WriteString("\tpop rbp\n")
-	out.WriteString("\tret\n")
-	out.WriteString("\n")
-
-	out.WriteString(gen(node))
+	for _, v := range header {
+		out.WriteString(v)
+	}
+	out.WriteString(body)
 
 	return out.String()
 }
