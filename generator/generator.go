@@ -106,10 +106,10 @@ func gen(node ast.Node) string {
 		return gen(n.Expression)
 
 	case *ast.FunctionCallNode:
-		if src, ok := builtinFunc[n.Idetifer.Identifer]; ok {
+		/* 	if src, ok := builtinFunc[n.Idetifer.Identifer]; ok {
 			out.WriteString(src)
 			return out.String()
-		}
+		} */
 
 		for _, arg := range n.Args {
 			out.WriteString(gen(arg))
@@ -206,6 +206,25 @@ func Compile(node ast.Node) string {
 
 	out.WriteString(".intel_syntax noprefix\n")
 	out.WriteString(".global main\n")
+
+	out.WriteString("\n")
+	out.WriteString("put:\n")
+
+	out.WriteString("\tpush rbp\n")
+	out.WriteString("\tmov rbp, rsp\n")
+
+	out.WriteString("\tmov rax, 1\n")
+	out.WriteString("\tmov rdi, [rbp+16]\n")
+	out.WriteString("\tmov [rbp+16], rdi\n")
+	out.WriteString("\tmov rdi, 1\n")
+	out.WriteString("\tlea rsi, [rbp+16]\n")
+	out.WriteString("\tmov rdx, 1\n")
+	out.WriteString("\tsyscall\n")
+
+	out.WriteString("\tmov rsp, rbp\n")
+	out.WriteString("\tpop rbp\n")
+	out.WriteString("\tret\n")
+	out.WriteString("\n")
 
 	out.WriteString(gen(node))
 

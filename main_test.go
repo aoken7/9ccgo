@@ -17,6 +17,7 @@ func TestMain(t *testing.T) {
 		{"test002.c", 3},
 		{"test003.c", 10},
 		{"test004.c", 3},
+		{"test005.c", 126},
 	}
 
 	for _, tc := range testCases {
@@ -48,7 +49,7 @@ func TestMain(t *testing.T) {
 				}
 			}
 
-			asmbly := exec.Command("cc", "-o", "tmp", "tmp.s")
+			asmbly := exec.Command("cc", "-no-pie", "-o", "tmp", "tmp.s")
 			asmbly.Stderr = &stderr
 
 			err = asmbly.Run()
