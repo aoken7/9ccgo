@@ -68,7 +68,7 @@ func genLval(node ast.IdentiferNode) string {
 	var out bytes.Buffer
 
 	out.WriteString("\tmov rax, rbp\n")
-	out.WriteString(fmt.Sprintf("\tadd rax, %d\n", node.Offset+8))
+	out.WriteString(fmt.Sprintf("\tadd rax, %d\n", node.Offset))
 	out.WriteString("\tpush rax\n")
 
 	return out.String()

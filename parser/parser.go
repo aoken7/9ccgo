@@ -308,13 +308,13 @@ func (p *Parser) identifier(env *Env) ast.IdentiferNode {
 		ident := p.curToken.Literal
 		p.nextToken()
 
+		env.offset += 8
+
 		offset, ok := env.env[ident]
 		if !ok {
 			env.env[ident] = env.offset
 			offset = env.offset
-			//env.offset += 8
 		}
-		env.offset += 8
 
 		return ast.IdentiferNode{
 			Identifer: ident,
