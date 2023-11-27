@@ -1,0 +1,50 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    color: #333;
+}
+
+.input-container {
+    display: flex;
+    align-items: center;
+}
+
+.flexible-input {
+    padding: 5px;
+    width: 300px;
+    /* 幅を自動調整する */
+    min-width: 300px;
+    /* 最大幅を指定 */
+    margin-right: 10px;
+}
+
+button {
+    padding: 7px 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+p {
+    margin-top: 20px;
+}
+
+pre {
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    padding: 10px;
+    white-space: pre-wrap;
+    width: 500px;
+    min-height: 300px;
+}

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>C compiler</title>
+    <script src="./wasm_exec.js"></script>
+    <link rel="stylesheet" href="./styles.css">
+
+</head>
+
+<body>
+    <h1>C compiler</h1>
+    <div class="input-container">
+        <textarea id="inputField" placeholder="Enter C code" class="flexible-input"></textarea>
+    </div>
+    
+    <button class="btn waves-effect waves-light" onclick="callGoFunction()">Compile</button>
+    
+    <p>Output:</p>
+    <pre id="output"></pre>
+
+
+    <script>
+        const go = new Go();
+
+        WebAssembly.instantiateStreaming(fetch('wasm_main.wasm'), go.importObject).then((result) => {
+            go.run(result.instance);
+        });
+
+        function callGoFunction() {
+            const input = inputField.value;
+            const result = compile(input);
+            output.textContent = result
+        }
+    </script>
+
+</body>
+
+</html>
