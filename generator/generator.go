@@ -137,17 +137,26 @@ func gen(node ast.Node) string {
 	case *ast.IfStatement:
 		out.WriteString(gen(n.Expression))
 		out.WriteString("\tpop rax\n")
-		out.WriteString("\tcmp rax, 0\n")
+		out.WriteString("\tcmp rax, 1\n")
 
 		label := getJumpLabel()
 
 		out.WriteString("\tje " + label + "\n")
-		out.WriteString(gen(n.TrueStatement))
-		out.WriteString(label + ":\n")
+		out.WriteString("\n")
 
+		// False節
 		if n.FalseStatement != nil {
 			out.WriteString(gen(n.FalseStatement))
 		}
+
+		end_label := getJumpLabel()
+		out.WriteString("\tje " + end_label + "\n")
+		out.WriteString("\n")
+
+		out.WriteString(label + ":\n")
+		out.WriteString(gen(n.TrueStatement))
+		out.WriteString("\n")
+		out.WriteString(end_label + ":\n")
 
 		return out.String()
 
