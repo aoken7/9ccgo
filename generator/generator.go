@@ -10,6 +10,8 @@ import (
 
 var jumpLabel = -1
 
+var header map[string]string
+
 func getJumpLabel() string {
 	jumpLabel++
 	return ".Lend" + strconv.Itoa(jumpLabel)
@@ -89,6 +91,10 @@ func gen(node ast.Node) string {
 
 		out.WriteString(gen(&n.CmpStmt))
 
+		if n.Ident.Identifer == "main" {
+			return out.String()
+		}
+
 		out.WriteString("\tmov rsp, rbp\n")
 		out.WriteString("\tpop rbp\n")
 		out.WriteString("\tret\n")
@@ -98,6 +104,9 @@ func gen(node ast.Node) string {
 	case *ast.CompoundStatement:
 		for _, stmt := range n.Statements {
 			out.WriteString(gen(stmt))
+			if _, ok := stmt.(*ast.ReturnStatement); ok {
+				return out.String()
+			}
 			out.WriteString("\tpop rax\n")
 		}
 		return out.String()
@@ -106,6 +115,10 @@ func gen(node ast.Node) string {
 		return gen(n.Expression)
 
 	case *ast.FunctionCallNode:
+		if src, ok := builtinFunc[n.Idetifer.Identifer]; ok {
+			header[n.Idetifer.Identifer] = src
+		}
+
 		for _, arg := range n.Args {
 			out.WriteString(gen(arg))
 		}
@@ -124,17 +137,26 @@ func gen(node ast.Node) string {
 	case *ast.IfStatement:
 		out.WriteString(gen(n.Expression))
 		out.WriteString("\tpop rax\n")
-		out.WriteString("\tcmp rax, 0\n")
+		out.WriteString("\tcmp rax, 1\n")
 
 		label := getJumpLabel()
 
 		out.WriteString("\tje " + label + "\n")
-		out.WriteString(gen(n.TrueStatement))
-		out.WriteString(label + ":\n")
+		out.WriteString("\n")
 
+		// False節
 		if n.FalseStatement != nil {
 			out.WriteString(gen(n.FalseStatement))
 		}
+
+		end_label := getJumpLabel()
+		out.WriteString("\tje " + end_label + "\n")
+		out.WriteString("\n")
+
+		out.WriteString(label + ":\n")
+		out.WriteString(gen(n.TrueStatement))
+		out.WriteString("\n")
+		out.WriteString(end_label + ":\n")
 
 		return out.String()
 
@@ -198,11 +220,17 @@ func gen(node ast.Node) string {
 func Compile(node ast.Node) string {
 
 	var out bytes.Buffer
+	header = map[string]string{}
 
 	out.WriteString(".intel_syntax noprefix\n")
 	out.WriteString(".global main\n")
 
-	out.WriteString(gen(node))
+	body := gen(node)
+
+	for _, v := range header {
+		out.WriteString(v)
+	}
+	out.WriteString(body)
 
 	return out.String()
 }

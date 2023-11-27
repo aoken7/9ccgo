@@ -4,6 +4,7 @@ import (
 	"9ccgo/generator"
 	"9ccgo/lexer"
 	"9ccgo/parser"
+	"9ccgo/preprocess"
 	"fmt"
 	"os"
 )
@@ -22,7 +23,8 @@ func main() {
 		return
 	}
 
-	tokens := lexer.Tokenize(string(source))
+	input := preprocess.Preprocess(string(source))
+	tokens := lexer.Tokenize(input)
 	parser := parser.New(tokens)
 	ast := parser.Parse()
 

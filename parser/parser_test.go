@@ -180,7 +180,7 @@ func TestFunction(t *testing.T) {
 
 	tokens := lexer.Tokenize(input)
 	p := New(tokens)
-	actual := p.Parse()
+	actual := p.functionDefinition(Env{env: map[string]int{}})
 	fn := actual.(*ast.FunctionNode)
 	if fn.Type != types.Int {
 		t.Fatalf("declaration-specifier error. got=%s, want=%s", fn.Type, types.Int)
